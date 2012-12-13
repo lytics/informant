@@ -130,5 +130,3 @@ informant.group = function() {
 
   return group;
 };
-
-root['informant'] = informant;

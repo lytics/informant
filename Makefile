@@ -18,6 +18,7 @@ all: \
 	src/core.js \
 	src/util.js \
 	informant.elements.js \
+	src/export.js \
 	src/end.js
 
 informant.elements.js: \

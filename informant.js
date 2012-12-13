@@ -149,4 +149,5 @@
     };
     return graph;
   });
+  root["informant"] = informant;
 })();
