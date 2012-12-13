@@ -1,0 +1,40 @@
+informant.defineElement('graph', function(element) {
+  var graph = function(selection) {
+    var metric = element.metric();
+
+    function xScale() {
+      var domain = metric.domain(),
+        scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
+
+      return scale.domain(d3.extent(domain));
+    }
+
+    metric.on('ready', function init() {
+      var chart = dc.lineChart(selection.node())
+        .width(element.width() - 40)
+        .height(element.height() - 140)
+        .margins({top: 10, right: 10, bottom: 30, left: 50})
+        .dimension(metric.dimension())
+        .group(metric.group())
+        .x(xScale());
+
+      // Visual options
+      chart
+        .elasticY(true)
+        .renderHorizontalGridLines(true)
+        .brushOn(false)
+        .renderArea(true);
+
+      // Axes
+      chart.xAxis()
+        .ticks(d3.time.days)
+        .tickFormat(function(date) {
+          return (date.getMonth() + 1) + '/' + date.getDate();
+        });
+
+      chart.render();
+    });
+  };
+
+  return graph;
+});
