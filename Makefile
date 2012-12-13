@@ -2,12 +2,16 @@
 
 NODE_PATH ?= ./node_modules
 JS_COMPILER = $(NODE_PATH)/uglify-js/bin/uglifyjs
-JS_BEAUTIFIER = $(NODE_PATH)/uglify-js/bin/uglifyjs -b -i 2 -nm -ns
+JS_BEAUTIFIER = $(JS_COMPILER) -b -i 2 -nm -ns
 JS_TESTER = $(NODE_PATH)/vows/bin/vows
+CSS_COMPILER = $(NODE_PATH)/less/bin/lessc
+CSS_MINIFIER = $(CSS_COMPILER) --yui-compress
 
 all: \
 	informant.js \
-	informant.min.js
+	informant.min.js \
+	informant.css \
+	informant.min.css
 
 .INTERMEDIATE informant.js: \
 	src/start.js \
@@ -20,22 +24,43 @@ informant.elements.js: \
 	src/elements/number.js \
 	src/elements/graph.js
 
+.INTERMEDIATE informant.css: \
+	less/informant.less \
+	less/variables.less \
+	less/element.less \
+	less/elements/number.less \
+	less/elements/graph.less
+
 test: all
 	@$(JS_TESTER)
 
 %.min.js: %.js
 	@rm -f $@
+	@echo "Minifying to $@..."
 	$(JS_COMPILER) < $< > $@
 
 %.js:
 	@rm -f $@
+	@echo "Compiling $@..."
 	cat $(filter %.js,$^) | $(JS_BEAUTIFIER) > $@
-	@chmod a-w $@
+
+%.min.css: %.css
+	@rm -f $@
+	@echo "Minifying to $@..."
+	$(CSS_MINIFIER) $< > $@
+
+%.css:
+	@echo "Compiling $@..."
+	$(CSS_COMPILER) $(filter %.less,$<) $@
+
+%.less:
+	@cat /dev/null
 
 watch:
+	@echo "watching 'src' and 'less' directories..."
 	@node -e " \
 		require('watchr').watch({ \
-			path: 'src/', \
+			paths: ['src/','less/'], \
 			listener: function() { \
 				require('child_process').exec('make', function(err, out) { \
 					require('sys').puts(out); \
@@ -44,4 +69,6 @@ watch:
 		});"
 
 clean:
-	rm -f informant*.js
+	rm -f informant*
+
+.PHONY: all test watch clean

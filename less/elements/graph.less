@@ -1,0 +1,46 @@
+// Variables
+@graph-background-color: @background-color;
+@graph-title-color: @text-color;
+@graph-description-color: @text-color;
+@graph-stroke-color: black;
+@graph-fill-color: black;
+
+// Styles
+.element-graph {
+  background-color: @graph-background-color;
+
+  svg {
+    margin: auto;
+    stroke: @graph-stroke-color;
+    fill: none;
+
+    .line {
+      opacity: 0.5;
+      stroke-width: 2px;
+    }
+
+    .area {
+      opacity: 0.3;
+      fill: @graph-stroke-color;
+    }
+
+    .axis {
+      font-size: 12px;
+      opacity: 0.4;
+      stroke: @graph-stroke-color;
+    }
+
+    .grid-line line {
+      opacity: .1;
+      shape-rendering: crispEdges;
+    }
+  }
+
+  .title {
+    color: @graph-title-color;
+  }
+
+  .description {
+    color: @graph-description-color;
+  }
+}

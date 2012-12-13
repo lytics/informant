@@ -6,16 +6,16 @@ informant.defineElement('number', function(element) {
       value;
 
     if (element.title()) {
-      selection.append('div')
+      selection.append('h1')
         .classed('title', true)
         .html(element.title());
     }
 
-    value = selection.append('div')
+    value = selection.append('h2')
       .classed('value', true);
 
     if (element.description()) {
-      selection.append('div')
+      selection.append('p')
         .classed('description', true)
         .html(element.description());
     }

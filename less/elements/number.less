@@ -1,0 +1,30 @@
+// Variables
+@number-background-color: @background-color;
+@number-title-color: @text-color;
+@number-value-color: @text-color;
+@number-description-color: @text-color;
+
+// Styles
+.element-number {
+  background-color: @number-background-color;
+
+  .title {
+    color: @number-title-color;
+  }
+
+  .value {
+    color: @number-value-color;
+    margin-bottom: 20px;
+    min-height: 92px
+  }
+
+  .change-rate {
+    font-weight: 500;
+    font-size: 30px;
+    color: @number-value-color;
+  }
+
+  .description {
+    color: @number-description-color;
+  }
+}
