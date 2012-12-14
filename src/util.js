@@ -15,6 +15,22 @@ function createMutator(name, store, context) {
   };
 }
 
+// Add a set of getter/setters to an object
+function addMutators(context, store, names) {
+  names.forEach(function(name) {
+    context[name] = createMutator(name, store, context);
+  });
+}
+
+// Given a selection, add an node that represents the component
+function addComponent(component, selection, tag, classes) {
+  if (component && component()) {
+    return selection.append(tag)
+      .classed(classes, !!classes)
+      .html(component());
+  }
+}
+
 // Simple extend implementation
 function extend(target, obj) {
   keys(obj).forEach(function(attr) {

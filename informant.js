@@ -11,6 +11,16 @@
       return context;
     };
   }
+  function addMutators(context, store, names) {
+    names.forEach(function(name) {
+      context[name] = createMutator(name, store, context);
+    });
+  }
+  function addComponent(component, selection, tag, classes) {
+    if (component && component()) {
+      return selection.append(tag).classed(classes, !!classes).html(component());
+    }
+  }
   function extend(target, obj) {
     keys(obj).forEach(function(attr) {
       target[attr] = obj[attr];
@@ -48,9 +58,7 @@
         return instance;
       };
       instance.render = instance;
-      [ "metric", "width", "height" ].forEach(function(name) {
-        instance[name] = createMutator(name, attributes, instance);
-      });
+      addMutators(instance, attributes, [ "metric", "width", "height" ]);
       instance.size = function(h, w) {
         if (!arguments.length) {
           return [ instance.height(), instance.width() ];
@@ -84,9 +92,7 @@
           left: 0
         };
         instances.push(instance);
-        [ "top", "left" ].forEach(function(name) {
-          instance[name] = createMutator(name, attributes, instance);
-        });
+        addMutators(instance, attributes, [ "top", "left" ]);
         instance.position = function(t, l) {
           if (!arguments.length) {
             return [ instance.top(), instance.left() ];
@@ -102,39 +108,36 @@
     group.render = group;
     return group;
   };
-  root["informant"] = informant;
   var keys = Object.keys;
   var isFunction = is("function");
   var isObject = is("object");
   informant.defineElement("number", function(element) {
     var attributes = {};
-    var number = function(selection) {
+    addMutators(element, attributes, [ "title", "description" ]);
+    return function(selection) {
       var metric = element.metric(), value;
-      if (element.title()) {
-        selection.append("h1").classed("title", true).html(element.title());
-      }
+      addComponent(element.title, selection, "h1", "title");
       value = selection.append("h2").classed("value", true);
-      if (element.description()) {
-        selection.append("p").classed("description", true).html(element.description());
-      }
+      addComponent(element.description, selection, "p", "description");
       metric.on("change", function update() {
         value.text(metric.value());
       });
     };
-    [ "title", "description" ].forEach(function(name) {
-      element[name] = createMutator(name, attributes, element);
-    });
-    return number;
   });
   informant.defineElement("graph", function(element) {
-    var graph = function(selection) {
+    var attributes = {};
+    addMutators(element, attributes, [ "title", "description" ]);
+    return function(selection) {
       function xScale() {
         var domain = metric.domain(), scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
         return scale.domain(d3.extent(domain));
       }
-      var metric = element.metric();
+      var metric = element.metric(), container;
+      addComponent(element.title, selection, "h1", "title");
+      container = selection.append("div").classed("chart line-chart", true);
+      addComponent(element.description, selection, "p", "description");
       metric.on("ready", function init() {
-        var chart = dc.lineChart(selection.node()).width(element.width() - 40).height(element.height() - 140).margins({
+        var chart = dc.lineChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
           top: 10,
           right: 10,
           bottom: 30,
@@ -147,7 +150,6 @@
         chart.render();
       });
     };
-    return graph;
   });
   root["informant"] = informant;
 })();

@@ -1,6 +1,18 @@
 informant.defineElement('graph', function(element) {
-  var graph = function(selection) {
-    var metric = element.metric();
+  var attributes = {};
+
+  addMutators(element, attributes, [ 'title', 'description' ]);
+
+  return function(selection) {
+    var metric = element.metric(),
+      container;
+
+    addComponent(element.title, selection, 'h1', 'title');
+
+    container = selection.append('div')
+      .classed('chart line-chart', true);
+
+    addComponent(element.description, selection, 'p', 'description');
 
     function xScale() {
       var domain = metric.domain(),
@@ -10,7 +22,7 @@ informant.defineElement('graph', function(element) {
     }
 
     metric.on('ready', function init() {
-      var chart = dc.lineChart(selection.node())
+      var chart = dc.lineChart(container.node())
         .width(element.width() - 40)
         .height(element.height() - 140)
         .margins({top: 10, right: 10, bottom: 30, left: 50})
@@ -35,6 +47,4 @@ informant.defineElement('graph', function(element) {
       chart.render();
     });
   };
-
-  return graph;
 });

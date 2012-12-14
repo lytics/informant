@@ -38,9 +38,7 @@ informant.defineElement = function(name, definition) {
     // Alias for element function itself
     instance.render = instance;
 
-    [ 'metric', 'width', 'height' ].forEach(function(name) {
-      instance[name] = createMutator(name, attributes, instance);
-    });
+    addMutators(instance, attributes, [ 'metric', 'width', 'height' ]);
 
     // Shortcut mutator for setting height/width at the same time
     instance.size = function(h, w) {
@@ -101,9 +99,7 @@ informant.group = function() {
 
       instances.push(instance);
 
-      [ 'top', 'left' ].forEach(function(name) {
-        instance[name] = createMutator(name, attributes, instance);
-      });
+      addMutators(instance, attributes, [ 'top', 'left' ]);
 
       // Shortcut mutator for setting both offsets at the same time
       instance.position = function(t, l) {

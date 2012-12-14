@@ -1,33 +1,21 @@
 informant.defineElement('number', function(element) {
   var attributes = {};
 
-  var number = function(selection) {
+  addMutators(element, attributes, [ 'title', 'description' ]);
+
+  return function(selection) {
     var metric = element.metric(),
       value;
 
-    if (element.title()) {
-      selection.append('h1')
-        .classed('title', true)
-        .html(element.title());
-    }
+    addComponent(element.title, selection, 'h1', 'title');
 
     value = selection.append('h2')
       .classed('value', true);
 
-    if (element.description()) {
-      selection.append('p')
-        .classed('description', true)
-        .html(element.description());
-    }
+    addComponent(element.description, selection, 'p', 'description');
 
     metric.on('change', function update() {
       value.text(metric.value());
     });
   };
-
-  [ 'title', 'description' ].forEach(function(name) {
-    element[name] = createMutator(name, attributes, element);
-  });
-
-  return number;
 });
