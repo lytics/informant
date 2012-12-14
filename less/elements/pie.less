@@ -1,0 +1,43 @@
+// Variables
+@pie-background-color: @background-color;
+@pie-title-color: @text-color;
+@pie-description-color: @text-color;
+@pie-stroke-color: black;
+@pie-fill-color: black;
+
+// Styles
+.element-pie {
+  background-color: @pie-background-color;
+
+  svg {
+    margin: auto;
+    stroke: @pie-stroke-color;
+    fill: none;
+
+    .pie-slice {
+      opacity: 0.5;
+      stroke: none;
+    }
+
+    text.pie-slice {
+      fill: black;
+    }
+
+    .grid-line line {
+      opacity: .1;
+      shape-rendering: crispEdges;
+    }
+  }
+
+
+  .title {
+    color: @pie-title-color;
+  }
+
+  .description {
+    color: @pie-description-color;
+    font-weight: 600;
+    font-size: 20px;
+    margin-top: 0;
+  }
+}

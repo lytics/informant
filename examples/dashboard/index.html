@@ -145,14 +145,12 @@
           .title('Average Visit Time')
           .description('Average number of hours per visit')
           .end()
-        // .pie
-        //   .position(4, 3)
-        //   .size(1, 1)
-        //   .metric(summary.metric().byDayOfWeek(true, true))
-        //   .vars({
-        //     title: 'Day of Week'
-        //   })
-        //   .end()
+        .pie()
+          .position(400, 0)
+          .size(340, 370)
+          .metric(summary.metric().byDayOfWeek(true, true))
+          .title('Day of Week')
+          .end()
         // .pie
         //   .position(4, 4)
         //   .size(1, 1)

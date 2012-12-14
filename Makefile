@@ -23,14 +23,16 @@ all: \
 
 informant.elements.js: \
 	src/elements/number.js \
-	src/elements/graph.js
+	src/elements/graph.js \
+	src/elements/pie.js
 
 .INTERMEDIATE informant.css: \
 	less/informant.less \
 	less/variables.less \
 	less/element.less \
 	less/elements/number.less \
-	less/elements/graph.less
+	less/elements/graph.less \
+	less/elements/pie.less
 
 test: all
 	@$(JS_TESTER)
