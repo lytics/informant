@@ -36,7 +36,8 @@ informant.elements.js: \
 	src/elements/number.js \
 	src/elements/list.js \
 	src/elements/graph.js \
-	src/elements/pie.js
+	src/elements/pie.js \
+	src/elements/bubble.js
 
 .INTERMEDIATE informant.css: \
 	less/informant.less \
@@ -45,7 +46,8 @@ informant.elements.js: \
 	less/elements/number.less \
 	less/elements/list.less \
 	less/elements/graph.less \
-	less/elements/pie.less
+	less/elements/pie.less \
+	less/elements/bubble.less
 
 test: all
 	@$(JS_TESTER)

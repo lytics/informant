@@ -62,3 +62,10 @@ function valueAt(index) {
     return d[index];
   };
 }
+
+// Given two value functions, returns a new value function that pipes the first through the second
+function pipe(func, p) {
+  return function(d) {
+    return func(p(d));
+  };
+}
