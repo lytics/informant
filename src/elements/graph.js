@@ -1,18 +1,8 @@
 informant.defineElement('graph', function(element) {
-  var attributes = {};
-
-  addMutators(element, attributes, [ 'title', 'description' ]);
-
   return function(selection) {
     var metric = element.metric(),
-      container;
-
-    addComponent(element.title, selection, 'h1', 'title');
-
-    container = selection.append('div')
-      .classed('chart line-chart', true);
-
-    addComponent(element.description, selection, 'p', 'description');
+      container = selection.append('div')
+        .classed('chart line-chart', true);
 
     function xScale() {
       var domain = metric.domain(),

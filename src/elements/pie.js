@@ -1,18 +1,8 @@
 informant.defineElement('pie', function(element) {
-  var attributes = {};
-
-  addMutators(element, attributes, [ 'title', 'description' ]);
-
   return function(selection) {
     var metric = element.metric(),
-      container;
-
-    addComponent(element.title, selection, 'h1', 'title');
-
-    container = selection.append('div')
-      .classed('chart pie-chart', true);
-
-    addComponent(element.description, selection, 'p', 'description');
+      container = selection.append('div')
+        .classed('chart pie-chart', true);
 
     metric.on('ready', function init() {
       var opacityScale = d3.scale.linear()

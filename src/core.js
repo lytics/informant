@@ -25,12 +25,23 @@ informant.defineElement = function(name, definition) {
 
     // render element into target (can be selector, DOM object, or d3 selection)
     var instance = function(target) {
-      select(target)
+      var container = select(target)
         .append('div')
           .classed('element element-' + name, true)
           .style('height', instance.height() + 'px')
-          .style('width', instance.width() + 'px')
-          .call(element);
+          .style('width', instance.width() + 'px');
+
+      if (instance.header()) {
+        container.append('header').html(instance.header());
+      }
+
+      container.append('div')
+        .classed('content', true)
+        .call(element);
+
+      if (instance.footer()) {
+        container.append('footer').html(instance.footer());
+      }
 
       return instance;
     };
@@ -38,7 +49,7 @@ informant.defineElement = function(name, definition) {
     // Alias for element function itself
     instance.render = instance;
 
-    addMutators(instance, attributes, [ 'metric', 'width', 'height' ]);
+    addMutators(instance, attributes, [ 'metric', 'width', 'height', 'header', 'footer' ]);
 
     // Shortcut mutator for setting height/width at the same time
     instance.size = function(h, w) {

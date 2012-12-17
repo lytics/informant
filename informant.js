@@ -16,11 +16,6 @@
       context[name] = createMutator(name, store, context);
     });
   }
-  function addComponent(component, selection, tag, classes) {
-    if (component && component()) {
-      return selection.append(tag).classed(classes, !!classes).html(component());
-    }
-  }
   function extend(target, obj) {
     keys(obj).forEach(function(attr) {
       target[attr] = obj[attr];
@@ -54,11 +49,18 @@
         width: 200
       };
       var instance = function(target) {
-        select(target).append("div").classed("element element-" + name, true).style("height", instance.height() + "px").style("width", instance.width() + "px").call(element);
+        var container = select(target).append("div").classed("element element-" + name, true).style("height", instance.height() + "px").style("width", instance.width() + "px");
+        if (instance.header()) {
+          container.append("header").html(instance.header());
+        }
+        container.append("div").classed("content", true).call(element);
+        if (instance.footer()) {
+          container.append("footer").html(instance.footer());
+        }
         return instance;
       };
       instance.render = instance;
-      addMutators(instance, attributes, [ "metric", "width", "height" ]);
+      addMutators(instance, attributes, [ "metric", "width", "height", "header", "footer" ]);
       instance.size = function(h, w) {
         if (!arguments.length) {
           return [ instance.height(), instance.width() ];
@@ -112,30 +114,20 @@
   var isFunction = is("function");
   var isObject = is("object");
   informant.defineElement("number", function(element) {
-    var attributes = {};
-    addMutators(element, attributes, [ "title", "description" ]);
     return function(selection) {
-      var metric = element.metric(), value;
-      addComponent(element.title, selection, "h1", "title");
-      value = selection.append("h2").classed("value", true);
-      addComponent(element.description, selection, "p", "description");
+      var metric = element.metric(), value = selection.append("div").classed("value", true);
       metric.on("change", function update() {
         value.text(metric.value());
       });
     };
   });
   informant.defineElement("graph", function(element) {
-    var attributes = {};
-    addMutators(element, attributes, [ "title", "description" ]);
     return function(selection) {
       function xScale() {
         var domain = metric.domain(), scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
         return scale.domain(d3.extent(domain));
       }
-      var metric = element.metric(), container;
-      addComponent(element.title, selection, "h1", "title");
-      container = selection.append("div").classed("chart line-chart", true);
-      addComponent(element.description, selection, "p", "description");
+      var metric = element.metric(), container = selection.append("div").classed("chart line-chart", true);
       metric.on("ready", function init() {
         var chart = dc.lineChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
           top: 10,
@@ -152,13 +144,8 @@
     };
   });
   informant.defineElement("pie", function(element) {
-    var attributes = {};
-    addMutators(element, attributes, [ "title", "description" ]);
     return function(selection) {
-      var metric = element.metric(), container;
-      addComponent(element.title, selection, "h1", "title");
-      container = selection.append("div").classed("chart pie-chart", true);
-      addComponent(element.description, selection, "p", "description");
+      var metric = element.metric(), container = selection.append("div").classed("chart pie-chart", true);
       metric.on("ready", function init() {
         var opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
         var chart = dc.pieChart(container.node()).width(element.width()).height(element.width()).radius(element.width() / 2 - 2).innerRadius(element.width() / 5).dimension(metric.dimension()).group(metric.group());
