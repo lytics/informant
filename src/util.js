@@ -55,3 +55,10 @@ var isObject = is('object');
 function isUndefined(obj) {
   return obj === undefined;
 }
+
+// Returns a function that returns the value of the first arg at the given index
+function valueAt(index) {
+  return function(d) {
+    return d[index];
+  };
+}

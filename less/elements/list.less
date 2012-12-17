@@ -1,0 +1,28 @@
+// Variables
+@list-background-color: @background-color;
+@list-value-color: @text-color;
+
+// Styles
+.element-list {
+  background-color: @list-background-color;
+
+  ol, ul {
+    text-align: left;
+    margin-left: 40px;
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  li {
+    margin-bottom: 5px;
+    cursor: pointer;
+    // text-transform: uppercase;
+    color: @list-value-color;
+
+    &.selected {
+      font-weight: 700;
+    }
+  }
+}

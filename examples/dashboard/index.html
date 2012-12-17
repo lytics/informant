@@ -57,121 +57,105 @@
         //     description: 'x: Average unique visits per hour, y: Average visit time in hours, radius: Total number of views'
         //   })
         //   .end()
-        // .list
-        //   .position(1, 4)
-        //   .size(1, 3)
-        //   .metric(summary.metric().by('station_id'))
-        //   .vars({
-        //     title: 'Radio Stations',
-        //   })
-        //   .end()
+        .list()
+          .position(0, 1170)
+          .size(1040, 350)
+          .metric(summary.metric().by('station_id'))
+          .header('Radio Stations')
+          .end()
         .graph()
-          .position(0, 400)
-          .size(340, 780)
+          .position(360, 0)
+          .size(320, 740)
           .metric(summary.metric().sum('_uid').byHour())
           .header('Visits')
           .footer('Number of unique visits')
           .end()
-        // .graph
-        //   .position(3, 1)
-        //   .size(2, 1)
-        //   .metric(summary.metric().average('session_time', secondsToHours).byHour())
-        //   .vars({
-        //     title: 'Average Visit Time',
-        //     description: 'Average number of hours spent per visit'
-        //   })
-        //   .end()
-        // .graph
-        //   .position(4, 1)
-        //   .size(2, 1)
-        //   .metric(
-        //     summary.metric()
-        //       .sum('_uid', 'unique_visits')
-        //       .sum('session_time', 'average_session_length')
-        //       .transform(function(d) {
-        //         // Total viewing hours is an approximation: average viewing time
-        //         // multiplied by number of unique visitors
-        //         return d.unique_visits * d.average_session_length;
-        //       }, secondsToHours)
-        //       .byHour())
-        //   .vars({
-        //     title: 'Total Tuning Hours',
-        //     description: 'Total hours spent viewing'
-        //   })
-        //   .end()
-        // .pie
-        //   .position(1, 3)
-        //   .size(1, 1)
-        //   // .metric(summary.metric().by('platform_type'))
-        //   .metric(summary.metric().by(function(d, index) {
-        //     // Treat blank platform types as desktop
-        //     return d[index('platform_type')] || 'desktop';
-        //   }))
-        //   .vars({
-        //     title: 'Platform'
-        //   })
-        //   .end()
-        // .number
-        //   .position(1, 1)
-        //   .size(1, 1)
-        //   .metric(summary.metric().distinctCount('station_id'))
-        //   .vars({
-        //     title: 'Radio Station Count',
-        //     description: 'Total unique stations'
-        //   })
-        //   .end()
-        // .number
-        //   .position(1, 2)
-        //   .size(1, 1)
-        //   .metric(summary.metric().sum('video_id', d3.format(',')))
-        //   .vars({
-        //     title: 'Song Count',
-        //     description: 'Total number of songs played'
-        //   })
-        //   .end()
-        // .number
-        //   .position(2, 3)
-        //   .size(1, 1)
-        //   .metric(summary.metric().average('_uid', d3.format('.2r')))
-        //   .vars({
-        //     title: 'Visits Per Hour',
-        //     description: 'Average number of visitors per hour'
-        //   })
-        //   .end()
+        .graph()
+          .position(720, 0)
+          .size(320, 740)
+          .metric(summary.metric().average('session_time', secondsToHours).byHour())
+          .header('Average Visit Time')
+          .footer('Average number of hours spent per visit')
+          .end()
+        .graph()
+          .position(1080, 0)
+          .size(320, 740)
+          .metric(
+            summary.metric()
+              .sum('_uid', 'unique_visits')
+              .sum('session_time', 'average_session_length')
+              .transform(function(d) {
+                // Total viewing hours is an approximation: average viewing time
+                // multiplied by number of unique visitors
+                return d.unique_visits * d.average_session_length;
+              }, secondsToHours)
+              .byHour())
+          .header('Total Tuning Hours')
+          .footer('Total hours spent viewing')
+          .end()
+        .pie()
+          .position(0, 780)
+          .size(320, 350)
+          // .metric(summary.metric().by('platform_type'))
+          .metric(summary.metric().by(function(d, index) {
+            // Treat blank platform types as desktop
+            return d[index('platform_type')] || 'desktop';
+          }))
+          .header('Platform')
+          .end()
         .number()
           .position(0, 0)
-          .size(340, 370)
+          .size(320, 350)
+          .metric(summary.metric().distinctCount('station_id'))
+          .header('Radio Station Count')
+          .footer('Total unique stations')
+          .end()
+        .number()
+          .position(0, 390)
+          .size(320, 350)
+          .metric(summary.metric().sum('video_id', d3.format(',')))
+          .header('Song Count')
+          .footer('Total number of songs played')
+          .end()
+        .number()
+          .position(360, 780)
+          .size(320, 350)
+          .metric(summary.metric().average('_uid', d3.format('.2r')))
+          .header('Visits Per Hour')
+          .footer('Average number of visitors per hour')
+          .end()
+        .number()
+          .position(720, 780)
+          .size(320, 350)
           .metric(summary.metric().average('session_time', secondsToHours, d3.format('.2r')))
           .header('Average Visit Time')
           .footer('Average number of hours per visit')
           .end()
         .pie()
-          .position(400, 0)
-          .size(340, 370)
+          .position(1080, 780)
+          .size(320, 350)
           .metric(summary.metric().byDayOfWeek(true, true))
           .header('Day of Week')
           .end()
-        // .pie
-        //   .position(4, 4)
-        //   .size(1, 1)
-        //   .metric(
-        //     summary.metric()
-        //       .byDate(function(date) {
-        //         var hour = date.getHours();
-        //         if (hour <= 6) {
-        //           return '12am-6am';
-        //         } else if (hour <= 12) {
-        //           return '6am-12pm';
-        //         } else if (hour <= 18) {
-        //           return '12pm-6pm';
-        //         } else {
-        //           return '6pm-12am';
-        //         }
-        //       }))
-        //   .vars({
-        //     title: 'Hours of Day'
-        //   })
-        //   .end()
+        .pie()
+          .position(1080, 1170)
+          .size(320, 350)
+          .metric(
+            summary.metric()
+              .byDate(function(date) {
+                var hour = date.getHours();
+                if (hour <= 6) {
+                  return '12am-6am';
+                } else if (hour <= 12) {
+                  return '6am-12pm';
+                } else if (hour <= 18) {
+                  return '12pm-6pm';
+                } else {
+                  return '6pm-12am';
+                }
+              }))
+          .header('Hours of Day')
+          .end()
         .render('#container');
     </script>
   </body>
