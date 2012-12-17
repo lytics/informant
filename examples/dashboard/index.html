@@ -135,6 +135,7 @@
           .position(1080, 780)
           .size(320, 350)
           .metric(summary.metric().byDayOfWeek(true, true))
+          .donut(true)
           .header('Day of Week')
           .end()
         .pie()
@@ -154,6 +155,7 @@
                   return '6pm-12am';
                 }
               }))
+          .donut(true)
           .header('Hours of Day')
           .end()
         .render('#container');

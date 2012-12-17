@@ -172,11 +172,18 @@
     };
   });
   informant.defineElement("pie", function(element) {
+    var attributes = {
+      donut: false
+    };
+    addMutators(element, attributes, [ "donut" ]);
     return function(selection) {
       var metric = element.metric(), container = selection.append("div").classed("chart pie-chart", true);
       metric.on("ready", function init() {
-        var opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
-        var chart = dc.pieChart(container.node()).width(element.width()).height(element.width()).radius(element.width() / 2 - 2).innerRadius(element.width() / 5).dimension(metric.dimension()).group(metric.group());
+        var radius = element.width() / 2 - 60, width = radius * 2 + 6, opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
+        var chart = dc.pieChart(container.node()).width(width).height(width).radius(radius).dimension(metric.dimension()).group(metric.group());
+        if (element.donut()) {
+          chart.innerRadius(radius / 3);
+        }
         var domain = [];
         for (var i = 0, size = metric.group().size(); i < size; i++) {
           domain.push(i);
