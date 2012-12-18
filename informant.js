@@ -210,6 +210,7 @@
         if (element.donut()) {
           chart.innerRadius(radius / 3);
         }
+        chart.minAngleForLabel(.05);
         var domain = [];
         for (var i = 0, size = metric.group().size(); i < size; i++) {
           domain.push(i);

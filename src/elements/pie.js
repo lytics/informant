@@ -29,6 +29,10 @@ informant.defineElement('pie', function(element) {
         chart.innerRadius(radius / 3);
       }
 
+      // Visual options
+      chart
+        .minAngleForLabel(0.05);
+
       var domain = [];
       for (var i = 0, size = metric.group().size(); i < size; i++) {
         domain.push(i);
