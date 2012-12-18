@@ -95,6 +95,16 @@ informant.group = function() {
         .style('top', element.top() + 'px')
         .style('left', element.left() + 'px')
         .call(element);
+
+      // Add id attribute if specified
+      if (element.id()) {
+        wrapper.attr('id', element.id());
+      }
+
+      // Add classes if specified (use `classed` so as not to wipe out 'wrapper' class)
+      if (element.classes()) {
+        wrapper.classed(element.classes(), true);
+      }
     });
 
     return group;
@@ -110,7 +120,7 @@ informant.group = function() {
 
       instances.push(instance);
 
-      addMutators(instance, attributes, [ 'top', 'left' ]);
+      addMutators(instance, attributes, [ 'id', 'classes', 'top', 'left' ]);
 
       // Shortcut mutator for setting both offsets at the same time
       instance.position = function(t, l) {

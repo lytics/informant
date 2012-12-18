@@ -104,6 +104,12 @@
       var group = select(target).append("div").classed("informant group", true).style("position", "relative");
       instances.forEach(function(element) {
         var wrapper = group.append("div").classed("wrapper", true).style("position", "absolute").style("top", element.top() + "px").style("left", element.left() + "px").call(element);
+        if (element.id()) {
+          wrapper.attr("id", element.id());
+        }
+        if (element.classes()) {
+          wrapper.classed(element.classes(), true);
+        }
       });
       return group;
     };
@@ -114,7 +120,7 @@
           left: 0
         };
         instances.push(instance);
-        addMutators(instance, attributes, [ "top", "left" ]);
+        addMutators(instance, attributes, [ "id", "classes", "top", "left" ]);
         instance.position = function(t, l) {
           if (!arguments.length) {
             return [ instance.top(), instance.left() ];
