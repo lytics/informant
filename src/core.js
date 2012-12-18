@@ -84,13 +84,13 @@ informant.group = function() {
   group = function(target) {
     // Create an element that contains the whole group
     var group = select(target).append('div')
-      .classed('group', true)
+      .classed('informant group', true)
       .style('position', 'relative');
 
     // Render each element into it's own positioned wrapper
     instances.forEach(function(element) {
-      group.append('div')
-        .classed('element-wrapper', true)
+      var wrapper = group.append('div')
+        .classed('wrapper', true)
         .style('position', 'absolute')
         .style('top', element.top() + 'px')
         .style('left', element.left() + 'px')

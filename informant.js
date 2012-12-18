@@ -101,9 +101,9 @@
   informant.group = function() {
     var group, instances = [];
     group = function(target) {
-      var group = select(target).append("div").classed("group", true).style("position", "relative");
+      var group = select(target).append("div").classed("informant group", true).style("position", "relative");
       instances.forEach(function(element) {
-        group.append("div").classed("element-wrapper", true).style("position", "absolute").style("top", element.top() + "px").style("left", element.left() + "px").call(element);
+        var wrapper = group.append("div").classed("wrapper", true).style("position", "absolute").style("top", element.top() + "px").style("left", element.left() + "px").call(element);
       });
       return group;
     };
