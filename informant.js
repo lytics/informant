@@ -43,6 +43,16 @@
       return func(p(d));
     };
   }
+  function createScale(metric, value) {
+    var domain = value ? metric.value().map(value) : metric.domain();
+    if (domain[0] instanceof Date) {
+      return d3.time.scale().domain(d3.extent(domain));
+    } else if (typeof domain[0] === "string") {
+      return d3.scale.ordinal().domain(domain);
+    } else {
+      return d3.scale.linear().domain(d3.extent(domain));
+    }
+  }
   var root = this, d3 = root.d3;
   var informant = {
     version: "0.1.0"
@@ -156,10 +166,6 @@
   });
   informant.defineElement("graph", function(element) {
     return function(selection) {
-      function xScale() {
-        var domain = metric.domain(), scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
-        return scale.domain(d3.extent(domain));
-      }
       var metric = element.metric(), container = selection.append("div").classed("chart line-chart", true);
       metric.on("ready", function init() {
         var chart = dc.lineChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
@@ -167,11 +173,26 @@
           right: 10,
           bottom: 30,
           left: 50
-        }).dimension(metric.dimension()).group(metric.group()).x(xScale());
+        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric));
         chart.elasticY(true).renderHorizontalGridLines(true).brushOn(false).renderArea(true);
         chart.xAxis().ticks(d3.time.days).tickFormat(function(date) {
           return date.getMonth() + 1 + "/" + date.getDate();
         });
+        chart.render();
+      });
+    };
+  });
+  informant.defineElement("bar", function(element) {
+    return function(selection) {
+      var metric = element.metric(), container = selection.append("div").classed("chart bar-chart", true);
+      metric.on("ready", function init() {
+        var chart = dc.barChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
+          top: 10,
+          right: 10,
+          bottom: 30,
+          left: 60
+        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric)).xUnits(dc.units.ordinal);
+        chart.elasticY(true).centerBar(true).renderHorizontalGridLines(true).brushOn(false);
         chart.render();
       });
     };
@@ -206,10 +227,6 @@
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor", "radiusAccessor" ]);
     return function(selection) {
-      function scale(value) {
-        var domain = metric.value().map(value), scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
-        return scale.domain(d3.extent(domain));
-      }
       var metric = element.metric(), keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp), valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp), radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
       metric.on("ready", function init() {
         var chart = dc.bubbleChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
@@ -217,7 +234,7 @@
           right: 50,
           bottom: 30,
           left: 50
-        }).dimension(metric.dimension()).group(metric.group()).x(scale(keyAccessor)).y(scale(valueAccessor)).r(scale(radiusAccessor)).keyAccessor(keyAccessor).valueAccessor(valueAccessor).radiusValueAccessor(radiusAccessor);
+        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric, keyAccessor)).y(createScale(metric, valueAccessor)).r(createScale(metric, radiusAccessor)).keyAccessor(keyAccessor).valueAccessor(valueAccessor).radiusValueAccessor(radiusAccessor);
         chart.colors(d3.scale.category20c()).maxBubbleRelativeSize(.09).renderLabel(true).elasticX(true).elasticY(true).renderHorizontalGridLines(true).renderVerticalGridLines(true).brushOn(false);
         chart.render();
       });

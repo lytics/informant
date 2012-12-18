@@ -69,3 +69,16 @@ function pipe(func, p) {
     return func(p(d));
   };
 }
+
+// Intelligently creates a scale depending on the metrics data type
+function createScale(metric, value) {
+  var domain = value ? metric.value().map(value) : metric.domain();
+
+  if (domain[0] instanceof Date) {
+    return d3.time.scale().domain(d3.extent(domain));
+  } else if (typeof domain[0] === 'string') {
+    return d3.scale.ordinal().domain(domain);
+  } else {
+    return d3.scale.linear().domain(d3.extent(domain));
+  }
+}

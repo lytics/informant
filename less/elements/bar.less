@@ -1,0 +1,33 @@
+// Variables
+@bar-background-color: @background-color;
+@bar-stroke-color: black;
+@bar-fill-color: black;
+
+// Styles
+.element-bar {
+  background-color: @bar-background-color;
+
+  svg {
+    margin: auto;
+    stroke: @bar-stroke-color;
+    fill: none;
+
+    .bar {
+      fill-opacity: 0.3;
+      fill: @bar-stroke-color;
+      stroke-opacity: 0.5;
+      stroke-width: 2px;
+    }
+
+    .axis {
+      font-size: 12px;
+      opacity: 0.4;
+      stroke: @bar-stroke-color;
+    }
+
+    .grid-line line {
+      opacity: .1;
+      shape-rendering: crispEdges;
+    }
+  }
+}

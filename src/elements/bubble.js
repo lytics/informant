@@ -16,13 +16,6 @@ informant.defineElement('bubble', function(element) {
       container = selection.append('div')
         .classed('chart bubble-chart', true);
 
-    function scale(value) {
-      var domain = metric.value().map(value),
-        scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
-
-      return scale.domain(d3.extent(domain));
-    }
-
     metric.on('ready', function init() {
       var chart = dc.bubbleChart(container.node())
         .width(element.width() - 40)
@@ -30,9 +23,9 @@ informant.defineElement('bubble', function(element) {
         .margins({ top: 10, right: 50, bottom: 30, left: 50 })
         .dimension(metric.dimension())
         .group(metric.group())
-        .x(scale(keyAccessor))
-        .y(scale(valueAccessor))
-        .r(scale(radiusAccessor))
+        .x(createScale(metric, keyAccessor))
+        .y(createScale(metric, valueAccessor))
+        .r(createScale(metric, radiusAccessor))
         .keyAccessor(keyAccessor)
         .valueAccessor(valueAccessor)
         .radiusValueAccessor(radiusAccessor);

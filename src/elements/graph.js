@@ -4,13 +4,6 @@ informant.defineElement('graph', function(element) {
       container = selection.append('div')
         .classed('chart line-chart', true);
 
-    function xScale() {
-      var domain = metric.domain(),
-        scale = domain[0] instanceof Date ? d3.time.scale() : d3.scale.linear();
-
-      return scale.domain(d3.extent(domain));
-    }
-
     metric.on('ready', function init() {
       var chart = dc.lineChart(container.node())
         .width(element.width() - 40)
@@ -18,7 +11,7 @@ informant.defineElement('graph', function(element) {
         .margins({top: 10, right: 10, bottom: 30, left: 50})
         .dimension(metric.dimension())
         .group(metric.group())
-        .x(xScale());
+        .x(createScale(metric));
 
       // Visual options
       chart

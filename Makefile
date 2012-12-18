@@ -36,6 +36,7 @@ informant.elements.js: \
 	src/elements/number.js \
 	src/elements/list.js \
 	src/elements/graph.js \
+	src/elements/bar.js \
 	src/elements/pie.js \
 	src/elements/bubble.js
 
@@ -46,6 +47,7 @@ informant.elements.js: \
 	less/elements/number.less \
 	less/elements/list.less \
 	less/elements/graph.less \
+	less/elements/bar.less \
 	less/elements/pie.less \
 	less/elements/bubble.less
 
