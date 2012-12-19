@@ -1,13 +1,14 @@
 informant.defineElement('graph', function(element) {
   return function(selection) {
     var metric = element.metric(),
+      size = geometry(element),
       container = selection.append('div')
         .classed('chart line-chart', true);
 
     metric.on('ready', function init() {
       var chart = dc.lineChart(container.node())
-        .width(element.width() - 40)
-        .height(element.height() - 140)
+        .width(size.width - 40)
+        .height(size.height - 140)
         .margins({top: 10, right: 10, bottom: 30, left: 50})
         .dimension(metric.dimension())
         .group(metric.group())

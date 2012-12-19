@@ -10,6 +10,7 @@ informant.defineElement('bubble', function(element) {
 
   return function(selection) {
     var metric = element.metric(),
+      size = geometry(element),
       keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp),
       valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp),
       radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp),
@@ -18,8 +19,8 @@ informant.defineElement('bubble', function(element) {
 
     metric.on('ready', function init() {
       var chart = dc.bubbleChart(container.node())
-        .width(element.width() - 40)
-        .height(element.height() - 140)
+        .width(size.width - 40)
+        .height(size.height - 140)
         .margins({ top: 10, right: 50, bottom: 30, left: 50 })
         .dimension(metric.dimension())
         .group(metric.group())

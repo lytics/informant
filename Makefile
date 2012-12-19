@@ -26,8 +26,8 @@ informant.embed.js: \
 
 .INTERMEDIATE informant.js: \
 	src/start.js \
-	src/core.js \
 	src/util.js \
+	src/core.js \
 	informant.elements.js \
 	src/export.js \
 	src/end.js

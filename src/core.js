@@ -7,6 +7,29 @@ var informant = {
   version: '0.1.0'
 };
 
+// Global options hash, with default values
+var options = {
+  baseWidth: 1,
+  baseHeight: 1,
+  margins: 0
+};
+
+// Create a mutator for every option
+addMutators(informant, options, keys(options));
+
+// Shortcut mutator for setting base height/width at the same time
+addShortcutMutator(informant, 'baseSize', [ 'baseHeight', 'baseWidth' ]);
+
+// Shortcut for setting options as a hash
+informant.config = function(opts) {
+  if (!arguments.length) {
+    return extend({}, options);
+  }
+
+  // Set config options through mutators
+  return applyOptions(informant, opts);
+};
+
 var elementTypes = [];
 
 informant.defineElement = function(name, definition) {
@@ -16,7 +39,7 @@ informant.defineElement = function(name, definition) {
 
   elementTypes.push(name);
 
-  informant[name] = function(options) {
+  informant[name] = function(opts) {
     var element,
       attributes = {
         height  : 200,
@@ -25,11 +48,13 @@ informant.defineElement = function(name, definition) {
 
     // render element into target (can be selector, DOM object, or d3 selection)
     var instance = function(target) {
-      var container = select(target)
-        .append('div')
-          .classed('element element-' + name, true)
-          .style('height', instance.height() + 'px')
-          .style('width', instance.width() + 'px');
+      var size = geometry(instance),
+        container = select(target).append('div');
+
+      container
+        .classed('element element-' + name, true)
+        .style('height', size.height + 'px')
+        .style('width', size.width + 'px');
 
       if (instance.header()) {
         container.append('header').html(instance.header());
@@ -49,32 +74,17 @@ informant.defineElement = function(name, definition) {
     // Alias for element function itself
     instance.render = instance;
 
+    // Add basic mutator functions
     addMutators(instance, attributes, [ 'metric', 'width', 'height', 'header', 'footer' ]);
 
     // Shortcut mutator for setting height/width at the same time
-    instance.size = function(h, w) {
-      if (!arguments.length) {
-        return [ instance.height(), instance.width() ];
-      }
-
-      return instance
-        .height(h)
-        .width(w);
-    };
+    addShortcutMutator(instance , 'size', [ 'height', 'width' ]);
 
     // Pass the element instance to the definition so that it can be modified
     element = definition(instance);
 
     // Element attributes can be specified in an options hash
-    if (isObject(options)) {
-      keys(options).forEach(function(attr) {
-        if (isFunction(this[attr])) {
-          this[attr](options[attr]);
-        }
-      });
-    }
-
-    return instance;
+    return applyOptions(instance, opts);
   };
 };
 
@@ -89,11 +99,14 @@ informant.group = function() {
 
     // Render each element into it's own positioned wrapper
     instances.forEach(function(element) {
-      var wrapper = group.append('div')
-        .classed('wrapper', true)
+      var position = geometry(element),
+        wrapper = group.append('div');
+
+      wrapper
         .style('position', 'absolute')
-        .style('top', element.top() + 'px')
-        .style('left', element.left() + 'px')
+        .style('top', position.top + 'px')
+        .style('left', position.left + 'px')
+        .classed('wrapper', true)
         .call(element);
 
       // Add id attribute if specified
@@ -123,15 +136,7 @@ informant.group = function() {
       addMutators(instance, attributes, [ 'id', 'classes', 'top', 'left' ]);
 
       // Shortcut mutator for setting both offsets at the same time
-      instance.position = function(t, l) {
-        if (!arguments.length) {
-          return [ instance.top(), instance.left() ];
-        }
-
-        return instance
-          .top(t)
-          .left(l);
-      };
+      addShortcutMutator(instance, 'position', [ 'top', 'left' ]);
 
       // Add convenience function for easy chaining
       instance.end = function() {

@@ -2,24 +2,47 @@
   function select(target) {
     return target instanceof d3.selection ? target : d3.select(target);
   }
-  function createMutator(name, store, context) {
-    return function(value) {
-      if (!arguments.length) {
-        return store[name];
-      }
-      store[name] = value;
-      return context;
-    };
-  }
   function addMutators(context, store, names) {
     names.forEach(function(name) {
-      context[name] = createMutator(name, store, context);
+      context[name] = function(value) {
+        if (!arguments.length) {
+          return store[name];
+        }
+        store[name] = value;
+        return context;
+      };
     });
+  }
+  function addShortcutMutator(context, name, argNames) {
+    context[name] = function() {
+      var args = slice(arguments);
+      if (!args.length) {
+        return argNames.map(function(name) {
+          return context[name]();
+        });
+      }
+      args = isArray(args[0]) ? args[0] : args;
+      argNames.forEach(function(name, index) {
+        context[name](args[index]);
+      });
+      return context;
+    };
   }
   function extend(target, obj) {
     keys(obj).forEach(function(attr) {
       target[attr] = obj[attr];
     });
+    return target;
+  }
+  function applyOptions(target, options) {
+    if (isObject(options)) {
+      keys(options).forEach(function(attr) {
+        if (isFunction(informant[attr])) {
+          target[attr](options[attr]);
+        }
+      });
+    }
+    return target;
   }
   function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -53,9 +76,36 @@
       return d3.scale.linear().domain(d3.extent(domain));
     }
   }
+  function geometry(element) {
+    var size = informant.baseSize(), margin = informant.margins();
+    return {
+      top: size[0] * (element.top ? +element.top() : 0) + margin,
+      left: size[1] * (element.left ? +element.left() : 0) + margin,
+      height: size[0] * +element.height() - margin * 2,
+      width: size[1] * +element.width() - margin * 2
+    };
+  }
+  var slice = Function.prototype.call.bind(Array.prototype.slice);
+  var keys = Object.keys;
+  var isFunction = is("function");
+  var isObject = is("object");
+  var isArray = Array.isArray;
   var root = this, d3 = root.d3;
   var informant = {
     version: "0.1.0"
+  };
+  var options = {
+    baseWidth: 1,
+    baseHeight: 1,
+    margins: 0
+  };
+  addMutators(informant, options, keys(options));
+  addShortcutMutator(informant, "baseSize", [ "baseHeight", "baseWidth" ]);
+  informant.config = function(opts) {
+    if (!arguments.length) {
+      return extend({}, options);
+    }
+    return applyOptions(informant, opts);
   };
   var elementTypes = [];
   informant.defineElement = function(name, definition) {
@@ -63,13 +113,14 @@
       throw new Error("Attempting to define element that already exists or is protected: '" + name + "'");
     }
     elementTypes.push(name);
-    informant[name] = function(options) {
+    informant[name] = function(opts) {
       var element, attributes = {
         height: 200,
         width: 200
       };
       var instance = function(target) {
-        var container = select(target).append("div").classed("element element-" + name, true).style("height", instance.height() + "px").style("width", instance.width() + "px");
+        var size = geometry(instance), container = select(target).append("div");
+        container.classed("element element-" + name, true).style("height", size.height + "px").style("width", size.width + "px");
         if (instance.header()) {
           container.append("header").html(instance.header());
         }
@@ -81,21 +132,9 @@
       };
       instance.render = instance;
       addMutators(instance, attributes, [ "metric", "width", "height", "header", "footer" ]);
-      instance.size = function(h, w) {
-        if (!arguments.length) {
-          return [ instance.height(), instance.width() ];
-        }
-        return instance.height(h).width(w);
-      };
+      addShortcutMutator(instance, "size", [ "height", "width" ]);
       element = definition(instance);
-      if (isObject(options)) {
-        keys(options).forEach(function(attr) {
-          if (isFunction(this[attr])) {
-            this[attr](options[attr]);
-          }
-        });
-      }
-      return instance;
+      return applyOptions(instance, opts);
     };
   };
   informant.group = function() {
@@ -103,7 +142,8 @@
     group = function(target) {
       var group = select(target).append("div").classed("informant group", true).style("position", "relative");
       instances.forEach(function(element) {
-        var wrapper = group.append("div").classed("wrapper", true).style("position", "absolute").style("top", element.top() + "px").style("left", element.left() + "px").call(element);
+        var position = geometry(element), wrapper = group.append("div");
+        wrapper.style("position", "absolute").style("top", position.top + "px").style("left", position.left + "px").classed("wrapper", true).call(element);
         if (element.id()) {
           wrapper.attr("id", element.id());
         }
@@ -121,12 +161,7 @@
         };
         instances.push(instance);
         addMutators(instance, attributes, [ "id", "classes", "top", "left" ]);
-        instance.position = function(t, l) {
-          if (!arguments.length) {
-            return [ instance.top(), instance.left() ];
-          }
-          return instance.top(t).left(l);
-        };
+        addShortcutMutator(instance, "position", [ "top", "left" ]);
         instance.end = function() {
           return group;
         };
@@ -136,9 +171,6 @@
     group.render = group;
     return group;
   };
-  var keys = Object.keys;
-  var isFunction = is("function");
-  var isObject = is("object");
   informant.defineElement("number", function(element) {
     return function(selection) {
       var metric = element.metric(), value = selection.append("div").classed("value", true);
@@ -172,9 +204,9 @@
   });
   informant.defineElement("graph", function(element) {
     return function(selection) {
-      var metric = element.metric(), container = selection.append("div").classed("chart line-chart", true);
+      var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart line-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.lineChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
+        var chart = dc.lineChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
           right: 10,
           bottom: 30,
@@ -190,9 +222,9 @@
   });
   informant.defineElement("bar", function(element) {
     return function(selection) {
-      var metric = element.metric(), container = selection.append("div").classed("chart bar-chart", true);
+      var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart bar-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.barChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
+        var chart = dc.barChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
           right: 10,
           bottom: 30,
@@ -209,16 +241,16 @@
     };
     addMutators(element, attributes, [ "donut" ]);
     return function(selection) {
-      var metric = element.metric(), container = selection.append("div").classed("chart pie-chart", true);
+      var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart pie-chart", true);
       metric.on("ready", function init() {
-        var radius = element.width() / 2 - 60, width = radius * 2 + 6, opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
+        var radius = size.width / 2 - 60, width = radius * 2 + 6, opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
         var chart = dc.pieChart(container.node()).width(width).height(width).radius(radius).dimension(metric.dimension()).group(metric.group());
         if (element.donut()) {
           chart.innerRadius(radius / 3);
         }
         chart.minAngleForLabel(.05);
         var domain = [];
-        for (var i = 0, size = metric.group().size(); i < size; i++) {
+        for (var i = 0, s = metric.group().size(); i < s; i++) {
           domain.push(i);
         }
         chart.colors(domain.map(opacityScale));
@@ -234,9 +266,9 @@
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor", "radiusAccessor" ]);
     return function(selection) {
-      var metric = element.metric(), keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp), valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp), radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
+      var metric = element.metric(), size = geometry(element), keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp), valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp), radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.bubbleChart(container.node()).width(element.width() - 40).height(element.height() - 140).margins({
+        var chart = dc.bubbleChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
           right: 50,
           bottom: 30,

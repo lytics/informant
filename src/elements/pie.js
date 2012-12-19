@@ -7,12 +7,13 @@ informant.defineElement('pie', function(element) {
 
   return function(selection) {
     var metric = element.metric(),
+      size = geometry(element),
       container = selection.append('div')
         .classed('chart pie-chart', true);
 
     metric.on('ready', function init() {
       // TODO: make this padding intelligent
-      var radius = (element.width() / 2) - 60,
+      var radius = (size.width / 2) - 60,
         width = radius * 2 + 6, // Padding is so that wide strokes aren't clipped
         opacityScale = d3.scale.linear()
           .domain([0, metric.group().size() - 1])
@@ -34,7 +35,7 @@ informant.defineElement('pie', function(element) {
         .minAngleForLabel(0.05);
 
       var domain = [];
-      for (var i = 0, size = metric.group().size(); i < size; i++) {
+      for (var i = 0, s = metric.group().size(); i < s; i++) {
         domain.push(i);
       }
 
