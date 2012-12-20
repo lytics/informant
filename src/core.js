@@ -127,8 +127,8 @@ informant.group = function() {
   };
 
   elementTypes.forEach(function(name) {
-    group[name] = function(options) {
-      var instance = informant[name](options),
+    group[name] = function(opts) {
+      var instance = informant[name](),
         attributes = {
           top : 0,
           left: 0
@@ -146,7 +146,11 @@ informant.group = function() {
         return group;
       };
 
-      return instance;
+      // Apply options after additional mutators have been added
+      applyOptions(instance, opts);
+
+      // If an options hash was specified, return the group for easier chaining
+      return isUndefined(opts) ? instance : group;
     };
   });
 

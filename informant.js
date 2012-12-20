@@ -45,9 +45,10 @@
   function applyOptions(target, options) {
     if (isObject(options)) {
       keys(options).forEach(function(attr) {
-        if (isFunction(informant[attr])) {
-          target[attr](options[attr]);
+        if (!isFunction(target[attr])) {
+          throw new Error("Uknown method: '" + attr + "'");
         }
+        target[attr](options[attr]);
       });
     }
     return target;
@@ -163,8 +164,8 @@
       return group;
     };
     elementTypes.forEach(function(name) {
-      group[name] = function(options) {
-        var instance = informant[name](options), attributes = {
+      group[name] = function(opts) {
+        var instance = informant[name](), attributes = {
           top: 0,
           left: 0
         };
@@ -174,7 +175,8 @@
         instance.end = function() {
           return group;
         };
-        return instance;
+        applyOptions(instance, opts);
+        return isUndefined(opts) ? instance : group;
       };
     });
     addElementCreator(group);

@@ -63,9 +63,11 @@ function extend(target, obj) {
 function applyOptions(target, options) {
   if (isObject(options)) {
     keys(options).forEach(function(attr) {
-      if (isFunction(informant[attr])) {
-        target[attr](options[attr]);
+      if (!isFunction(target[attr])) {
+        throw new Error("Uknown method: '" + attr + "'");
       }
+
+      target[attr](options[attr]);
     });
   }
   return target;
