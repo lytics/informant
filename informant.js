@@ -124,7 +124,7 @@
     }
     elementTypes.push(name);
     informant[name] = function(opts) {
-      var element, attributes = {
+      var render, attributes = {
         height: 200,
         width: 200
       };
@@ -134,7 +134,7 @@
         if (instance.header()) {
           container.append("header").html(instance.header());
         }
-        container.append("div").classed("content", true).call(element);
+        container.append("div").classed("content", true).call(render);
         if (instance.footer()) {
           container.append("footer").html(instance.footer());
         }
@@ -143,7 +143,7 @@
       instance.render = instance;
       addMutators(instance, attributes, [ "metric", "width", "height", "header", "footer" ]);
       addShortcutMutator(instance, "size", [ "height", "width" ]);
-      element = definition(instance);
+      render = definition(instance);
       return applyOptions(instance, opts);
     };
   };
@@ -151,14 +151,14 @@
     var group, instances = [];
     group = function(target) {
       var group = select(target).append("div").classed("informant group", true).style("position", "relative");
-      instances.forEach(function(element) {
-        var position = geometry(element), wrapper = group.append("div");
-        wrapper.style("position", "absolute").style("top", position.top + "px").style("left", position.left + "px").classed("wrapper", true).call(element);
-        if (element.id()) {
-          wrapper.attr("id", element.id());
+      instances.forEach(function(instance) {
+        var position = geometry(instance), wrapper = group.append("div");
+        wrapper.style("position", "absolute").style("top", position.top + "px").style("left", position.left + "px").classed("wrapper", true).call(instance);
+        if (instance.id()) {
+          wrapper.attr("id", instance.id());
         }
-        if (element.classes()) {
-          wrapper.classed(element.classes(), true);
+        if (instance.classes()) {
+          wrapper.classed(instance.classes(), true);
         }
       });
       return group;

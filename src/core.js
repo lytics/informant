@@ -43,13 +43,14 @@ informant.defineElement = function(name, definition) {
   elementTypes.push(name);
 
   informant[name] = function(opts) {
-    var element,
+    var render,
       attributes = {
         height  : 200,
         width   : 200
       };
 
-    // render element into target (can be selector, DOM object, or d3 selection)
+    // Create DOM node in the target (can be selector, DOM object, or d3 selection),
+    // then call the element render method with it
     var instance = function(target) {
       var size = geometry(instance),
         container = select(target).append('div');
@@ -65,7 +66,7 @@ informant.defineElement = function(name, definition) {
 
       container.append('div')
         .classed('content', true)
-        .call(element);
+        .call(render);
 
       if (instance.footer()) {
         container.append('footer').html(instance.footer());
@@ -84,7 +85,7 @@ informant.defineElement = function(name, definition) {
     addShortcutMutator(instance , 'size', [ 'height', 'width' ]);
 
     // Pass the element instance to the definition so that it can be modified
-    element = definition(instance);
+    render = definition(instance);
 
     // Element attributes can be specified in an options hash
     return applyOptions(instance, opts);
@@ -101,8 +102,8 @@ informant.group = function() {
       .style('position', 'relative');
 
     // Render each element into it's own positioned wrapper
-    instances.forEach(function(element) {
-      var position = geometry(element),
+    instances.forEach(function(instance) {
+      var position = geometry(instance),
         wrapper = group.append('div');
 
       wrapper
@@ -110,16 +111,16 @@ informant.group = function() {
         .style('top', position.top + 'px')
         .style('left', position.left + 'px')
         .classed('wrapper', true)
-        .call(element);
+        .call(instance);
 
       // Add id attribute if specified
-      if (element.id()) {
-        wrapper.attr('id', element.id());
+      if (instance.id()) {
+        wrapper.attr('id', instance.id());
       }
 
       // Add classes if specified (use `classed` so as not to wipe out 'wrapper' class)
-      if (element.classes()) {
-        wrapper.classed(element.classes(), true);
+      if (instance.classes()) {
+        wrapper.classed(instance.classes(), true);
       }
     });
 
