@@ -20,6 +20,9 @@ addMutators(informant, options, keys(options));
 // Shortcut mutator for setting base height/width at the same time
 addShortcutMutator(informant, 'baseSize', [ 'baseHeight', 'baseWidth' ]);
 
+// Elements can be created through an `element` function
+addElementCreator(informant);
+
 // Shortcut for setting options as a hash
 informant.config = function(opts) {
   if (!arguments.length) {
@@ -146,6 +149,9 @@ informant.group = function() {
       return instance;
     };
   });
+
+  // Elements in the group can be created through an `element` function
+  addElementCreator(group);
 
   // Alias for set funciton itself
   group.render = group;

@@ -40,6 +40,17 @@ function addShortcutMutator(context, name, argNames) {
   };
 }
 
+// Adds a function for creating an element within the given context
+function addElementCreator(context) {
+  context.element = function(name, opts) {
+    if (elementTypes.indexOf(name) === -1) {
+      throw new Error("Unknown element type: '" + name + "'");
+    }
+
+    return context[name](opts);
+  };
+}
+
 // Simple extend implementation
 function extend(target, obj) {
   keys(obj).forEach(function(attr) {

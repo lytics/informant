@@ -28,6 +28,14 @@
       return context;
     };
   }
+  function addElementCreator(context) {
+    context.element = function(name, opts) {
+      if (elementTypes.indexOf(name) === -1) {
+        throw new Error("Unknown element type: '" + name + "'");
+      }
+      return context[name](opts);
+    };
+  }
   function extend(target, obj) {
     keys(obj).forEach(function(attr) {
       target[attr] = obj[attr];
@@ -101,6 +109,7 @@
   };
   addMutators(informant, options, keys(options));
   addShortcutMutator(informant, "baseSize", [ "baseHeight", "baseWidth" ]);
+  addElementCreator(informant);
   informant.config = function(opts) {
     if (!arguments.length) {
       return extend({}, options);
@@ -168,6 +177,7 @@
         return instance;
       };
     });
+    addElementCreator(group);
     group.render = group;
     return group;
   };
