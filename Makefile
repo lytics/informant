@@ -35,6 +35,7 @@ informant.embed.js: \
 informant.elements.js: \
 	src/elements/number.js \
 	src/elements/list.js \
+	src/elements/filter.js \
 	src/elements/graph.js \
 	src/elements/bar.js \
 	src/elements/pie.js \
@@ -43,9 +44,11 @@ informant.elements.js: \
 .INTERMEDIATE informant.css: \
 	less/informant.less \
 	less/variables.less \
+	less/mixins.less \
 	less/element.less \
 	less/elements/number.less \
 	less/elements/list.less \
+	less/elements/filter.less \
 	less/elements/graph.less \
 	less/elements/bar.less \
 	less/elements/pie.less \

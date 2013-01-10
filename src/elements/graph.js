@@ -17,6 +17,7 @@ informant.defineElement('graph', function(element) {
       // Visual options
       chart
         .elasticY(true)
+        .elasticX(true)
         .renderHorizontalGridLines(true)
         .brushOn(false)
         .renderArea(true);

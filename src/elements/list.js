@@ -24,7 +24,7 @@ informant.defineElement('list', function(element) {
           return accessor(d) === metric.filter();
         })
         .on('click', function(d) {
-          metric.filter(accessor(d) === metric.filter() ? null : d.key);
+          metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
 
           if (dc) {
             dc.redrawAll();

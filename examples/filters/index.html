@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>Filter Example</title>
+
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="../../informant.css">
+
+    <!--[if lt IE 9]>
+    <script src="../../lib/es5-shim/es5-shim.min.js"></script>
+    <![endif]-->
+    <script src="../../lib/d3/d3.v2.js"></script>
+    <script src="../../lib/crossfilter/crossfilter.js"></script>
+    <script src="../../lib/analyst/analyst.js"></script>
+    <script src="../../lib/dc/dc.js"></script>
+    <script src="../../informant.js"></script>
+  </head>
+  <body>
+    <div id="container" class="informant"></div>
+
+    <script>
+      var summary = new analyst.source('lytics', {
+        query: 'dailysum',
+        url: '//api.dev.lytics.io',
+        data: {
+          t: '31d'
+        }
+      }).fetch();
+
+      informant
+        .margins(10)
+        .group()
+          .filter()
+            .position(0, 0)
+            .size(100, 900)
+            .source(summary)
+            .header('Date Filter:')
+            .end()
+          .graph()
+            .position(100, 0)
+            .size(300, 600)
+            .metric(summary.metric().sum('_sesstart').byDay())
+            .header('Sessions')
+            .footer('Number of visits')
+            .end()
+          .number()
+            .position(100, 600)
+            .size(300, 300)
+            .metric(summary.metric().sum('_sesstart'))
+            .header('Total Sessions')
+            .end()
+          .render('#container');
+    </script>
+  </body>
+</html>

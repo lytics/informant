@@ -1,0 +1,45 @@
+// Variables
+@filter-background-color: @background-color;
+@filter-value-color: @text-color;
+@filter-border-color: @border-color;
+
+// Styles
+.element-filter {
+  background-color: @filter-background-color;
+
+  header {
+    display: inline-block;
+    padding: 10px;
+    margin: 0;
+
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .content {
+    display: inline-block;
+  }
+
+  ul {
+    list-style: none;
+    margin-left: 40px;
+  }
+
+  li {
+    display: inline-block;
+    min-width: 60px;
+    padding: 10px;
+    margin: 0 5px;
+
+    cursor: pointer;
+    color: @filter-value-color;
+
+    border: 2px solid @filter-border-color;
+    .border-radius();
+
+    &.selected {
+      border-width: 3px;
+      font-weight: 700;
+    }
+  }
+}
