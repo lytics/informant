@@ -231,47 +231,47 @@
     }, {
       days: 1,
       name: "Day"
-    } ], day = 24 * 60 * 60 * 1e3;
+    } ], day = 24 * 60 * 60 * 1e3, filterAccessor = valueAt("filter");
     addMutators(element, attributes, [ "source", "filters", "accessor" ]);
     return function(selection) {
+      function updateFilters() {
+        list.selectAll("li").classed("selected", function(d) {
+          return filterAccessor(d) === metric.filter();
+        });
+      }
       var metric = element.metric(), filters = element.filters(), list = selection.append("ul");
       if (!metric) {
         if (!element.source()) {
           throw new Error("A metric or source must be specified in a filter");
         }
         metric = element.source().metric().byDate();
-        metric.on("ready", function init() {
-          if (!filters.length) {
-            var dateRange = d3.extent(metric.value(), element.accessor());
-            filters.push({
-              name: "All",
-              filter: null
-            });
-            dateFilters.forEach(function(filter) {
-              if (dateRange[1] - dateRange[0] >= day * filter.days) {
-                filters.push({
-                  name: filter.name,
-                  filter: [ new Date(dateRange[1] - day * filter.days), new Date(dateRange[1]) ]
-                });
-              }
-            });
-          }
-        });
       }
-      metric.on("change", function update() {
-        var filterAccessor = valueAt("filter"), items = list.selectAll("li").data(filters);
-        items.enter().append("li");
-        items.text(valueAt("name")).classed("selected", function(d) {
-          return filterAccessor(d) === metric.filter();
-        }).on("click", function(d) {
+      metric.on("ready", function init() {
+        if (!filters.length) {
+          var dateRange = d3.extent(metric.value(), element.accessor());
+          filters.push({
+            name: "All",
+            filter: null
+          });
+          dateFilters.forEach(function(filter) {
+            if (dateRange[1] - dateRange[0] >= day * filter.days) {
+              filters.push({
+                name: filter.name,
+                filter: [ new Date(dateRange[1] - day * filter.days), Date.now() ]
+              });
+            }
+          });
+        }
+        list.selectAll("li").data(filters).enter().append("li").text(valueAt("name")).on("click", function(d) {
           var filter = filterAccessor(d);
           metric.filter(filter === metric.filter() ? null : filter);
           if (dc) {
             dc.redrawAll();
           }
         });
-        items.exit().remove();
+        updateFilters();
       });
+      metric.on("filter", updateFilters);
     };
   });
   informant.defineElement("graph", function(element) {
