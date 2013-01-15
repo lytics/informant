@@ -145,3 +145,43 @@ function geometry(element) {
     width : size[1] * +element.width() - margin * 2
   };
 }
+
+// A crossfilter group proxy object that alters the final output based on a
+// given range restriction
+function VariableRangeGroup(group, accessor) {
+  var attributes = {
+    range: null
+  };
+
+  // Add proxies for all functions but `.all()`
+  keys(group).forEach(function(prop) {
+    if (prop !== 'all' && group.hasOwnProperty(prop)) {
+      this[prop] = function() {
+        return group[prop].apply(group, arguments);
+      };
+    }
+  }, this);
+
+  // Replace `.all()` with a function that limits the range of the output
+  this.all = function() {
+    var data = group.all(),
+      range = attributes.range;
+
+    if (isArray(range)) {
+      return data.filter(function(d) {
+        return accessor(d) >= range[0] && accessor(d) < range[1];
+      });
+    }
+
+    if (range !== null) {
+      return data.filter(function(d) {
+        return range == accessor(d);
+      });
+    }
+
+    return data;
+  };
+
+  // Add getter/setter for the limiting range
+  addMutators(this, attributes, [ 'range' ]);
+}
