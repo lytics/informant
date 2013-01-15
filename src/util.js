@@ -98,6 +98,9 @@ var isFunction = is('function');
 // Checks if the object is a plain object
 var isObject = is('object');
 
+// Checks if the object is a date
+var isDate =  is('date');
+
 // Checks if the object is an array
 var isArray = Array.isArray;
 

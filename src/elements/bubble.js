@@ -1,9 +1,9 @@
 informant.defineElement('bubble', function(element) {
   var valueProp = valueAt('value'),
     attributes = {
-      keyAccessor: 'key',
-      valueAccessor: 'value',
-      radiusAccessor: 'radius'
+      keyAccessor: valueAt('key'),
+      valueAccessor: valueAt('value'),
+      radiusAccessor: valueAt('radius')
     };
 
   addMutators(element, attributes, [ 'keyAccessor', 'valueAccessor', 'radiusAccessor' ]);
@@ -11,9 +11,9 @@ informant.defineElement('bubble', function(element) {
   return function(selection) {
     var metric = element.metric(),
       size = geometry(element),
-      keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp),
-      valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp),
-      radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp),
+      keyAccessor = pipe(element.keyAccessor(), valueProp),
+      valueAccessor = pipe(element.valueAccessor(), valueProp),
+      radiusAccessor = pipe(element.radiusAccessor(), valueProp),
       container = selection.append('div')
         .classed('chart bubble-chart', true);
 

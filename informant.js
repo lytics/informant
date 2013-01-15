@@ -94,10 +94,38 @@
       width: size[1] * +element.width() - margin * 2
     };
   }
+  function VariableRangeGroup(group, accessor) {
+    var attributes = {
+      range: null
+    };
+    keys(group).forEach(function(prop) {
+      if (prop !== "all" && group.hasOwnProperty(prop)) {
+        this[prop] = function() {
+          return group[prop].apply(group, arguments);
+        };
+      }
+    }, this);
+    this.all = function() {
+      var data = group.all(), range = attributes.range;
+      if (isArray(range)) {
+        return data.filter(function(d) {
+          return accessor(d) >= range[0] && accessor(d) < range[1];
+        });
+      }
+      if (range !== null) {
+        return data.filter(function(d) {
+          return range == accessor(d);
+        });
+      }
+      return data;
+    };
+    addMutators(this, attributes, [ "range" ]);
+  }
   var slice = Function.prototype.call.bind(Array.prototype.slice);
   var keys = Object.keys;
   var isFunction = is("function");
   var isObject = is("object");
+  var isDate = is("date");
   var isArray = Array.isArray;
   var root = this, d3 = root.d3;
   var informant = {
@@ -183,6 +211,46 @@
     group.render = group;
     return group;
   };
+  d3.interpolators.push(function(a, b) {
+    function fill(value, length) {
+      return d3.range(length).map(function() {
+        return value;
+      });
+    }
+    function extractCoordinates(path) {
+      return path.substr(1, path.length - (isArea ? 2 : 1)).split("L");
+    }
+    function makePath(coordinates) {
+      return "M" + coordinates.join("L") + (isArea ? "Z" : "");
+    }
+    function bufferPath(p1, p2) {
+      var d = p2.length - p1.length;
+      if (isArea) {
+        return fill(p1[0], d / 2).concat(p1, fill(p1[p1.length - 1], d / 2));
+      } else {
+        return fill(p1[0], d).concat(p1);
+      }
+    }
+    var isPath, isArea, interpolator, ac, bc, an, bn;
+    isPath = /M-?\d*\.?\d*,-?\d*\.?\d*(L-?\d*\.?\d*,-?\d*\.?\d*)*Z?/;
+    if (isPath.test(a) && isPath.test(b)) {
+      isArea = a[a.length - 1] === "Z";
+      ac = extractCoordinates(a);
+      bc = extractCoordinates(b);
+      an = ac.length;
+      bn = bc.length;
+      if (an > bn) {
+        bc = bufferPath(bc, ac);
+      }
+      if (bn > an) {
+        ac = bufferPath(ac, bc);
+      }
+      interpolator = d3.interpolateString(bn > an ? makePath(ac) : a, an > bn ? makePath(bc) : b);
+      return bn > an ? interpolator : function(t) {
+        return t === 1 ? b : interpolator(t);
+      };
+    }
+  });
   informant.defineElement("number", function(element) {
     return function(selection) {
       var metric = element.metric(), value = selection.append("div").classed("value", true);
@@ -275,35 +343,57 @@
     };
   });
   informant.defineElement("graph", function(element) {
+    var attributes = {
+      keyAccessor: valueAt("key"),
+      valueAccessor: valueAt("value")
+    };
+    addMutators(element, attributes, [ "keyAccessor", "valueAccessor" ]);
     return function(selection) {
-      var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart line-chart", true);
+      var metric = element.metric(), group = metric.group(), variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor), size = geometry(element), container = selection.append("div").classed("chart line-chart", true);
       metric.on("ready", function init() {
         var chart = dc.lineChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
           right: 10,
           bottom: 30,
           left: 50
-        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric));
+        }).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric));
         chart.elasticY(true).elasticX(true).renderHorizontalGridLines(true).brushOn(false).renderArea(true);
         chart.xAxis().ticks(d3.time.days).tickFormat(function(date) {
           return date.getMonth() + 1 + "/" + date.getDate();
         });
         chart.render();
       });
+      metric.on("filter", function(dimension, filter) {
+        var value = group.all();
+        if (isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
+          variableRangeGroup.range(filter);
+        }
+      });
     };
   });
   informant.defineElement("bar", function(element) {
+    var attributes = {
+      keyAccessor: valueAt("key"),
+      valueAccessor: valueAt("value")
+    };
+    addMutators(element, attributes, [ "keyAccessor", "valueAccessor" ]);
     return function(selection) {
-      var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart bar-chart", true);
+      var metric = element.metric(), group = metric.group(), variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor), size = geometry(element), container = selection.append("div").classed("chart bar-chart", true);
       metric.on("ready", function init() {
         var chart = dc.barChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
           right: 10,
           bottom: 30,
           left: 60
-        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric)).xUnits(dc.units.ordinal);
-        chart.elasticY(true).centerBar(true).renderHorizontalGridLines(true).brushOn(false);
+        }).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric)).xUnits(dc.units.ordinal);
+        chart.elasticY(true).elasticX(true).centerBar(true).renderHorizontalGridLines(true).brushOn(false);
         chart.render();
+      });
+      metric.on("filter", function(dimension, filter) {
+        var value = group.all();
+        if (isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
+          variableRangeGroup.range(filter);
+        }
       });
     };
   });
@@ -332,13 +422,13 @@
   });
   informant.defineElement("bubble", function(element) {
     var valueProp = valueAt("value"), attributes = {
-      keyAccessor: "key",
-      valueAccessor: "value",
-      radiusAccessor: "radius"
+      keyAccessor: valueAt("key"),
+      valueAccessor: valueAt("value"),
+      radiusAccessor: valueAt("radius")
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor", "radiusAccessor" ]);
     return function(selection) {
-      var metric = element.metric(), size = geometry(element), keyAccessor = pipe(valueAt(element.keyAccessor()), valueProp), valueAccessor = pipe(valueAt(element.valueAccessor()), valueProp), radiusAccessor = pipe(valueAt(element.radiusAccessor()), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
+      var metric = element.metric(), size = geometry(element), keyAccessor = pipe(element.keyAccessor(), valueProp), valueAccessor = pipe(element.valueAccessor(), valueProp), radiusAccessor = pipe(element.radiusAccessor(), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
       metric.on("ready", function init() {
         var chart = dc.bubbleChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
           top: 10,
