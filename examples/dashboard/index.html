@@ -25,12 +25,11 @@
     <script>
       var summary = new analyst.source('lytics', {
         query: 'stationsum',
-        url: '//api.dev.lytics.io',
         data: { limit: 150 }
       })
-        .filter(function(d, index) {
+        .sanitizer(function(d, index) {
           var i = index('station_id');
-          return d[i] && d[i] !== 'atst';
+          return d[i] && d[i] !== 'atst' && d;
         })
         .fetch(); //.start(24 * 60 * 60e3);
 
