@@ -176,12 +176,6 @@ function VariableRangeGroup(group, accessor) {
       });
     }
 
-    if (range !== null) {
-      return data.filter(function(d) {
-        return range == accessor(d);
-      });
-    }
-
     return data;
   };
 

@@ -47,7 +47,8 @@ informant.defineElement('graph', function(element) {
       var value = group.all();
 
       // Update the variable range group's new range only if it's a date dimension
-      if (isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
+      if (isArray(filter) && isDate(filter[0]) &&
+        isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
         variableRangeGroup.range(filter);
       }
     });

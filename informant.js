@@ -112,11 +112,6 @@
           return accessor(d) >= range[0] && accessor(d) < range[1];
         });
       }
-      if (range !== null) {
-        return data.filter(function(d) {
-          return range == accessor(d);
-        });
-      }
       return data;
     };
     addMutators(this, attributes, [ "range" ]);
@@ -316,19 +311,20 @@
       }
       metric.on("ready", function init() {
         if (!filters.length) {
-          var dateRange = d3.extent(metric.value(), element.accessor());
+          var dateRange = d3.extent(metric.value(), element.accessor()), rangeMax = new Date(+dateRange[1] + 1), fullRange = [ dateRange[0], rangeMax ];
           filters.push({
             name: "All",
-            filter: null
+            filter: fullRange
           });
           dateFilters.forEach(function(filter) {
             if (dateRange[1] - dateRange[0] >= day * filter.days) {
               filters.push({
                 name: filter.name,
-                filter: [ new Date(dateRange[1] - day * filter.days), Date.now() ]
+                filter: [ new Date(dateRange[1] - day * filter.days), rangeMax ]
               });
             }
           });
+          metric.filter(fullRange);
         }
         list.selectAll("li").data(filters).enter().append("li").text(valueAt("name")).on("click", function(d) {
           var filter = filterAccessor(d);
@@ -365,7 +361,7 @@
       });
       metric.on("filter", function(dimension, filter) {
         var value = group.all();
-        if (isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
+        if (isArray(filter) && isDate(filter[0]) && isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
           variableRangeGroup.range(filter);
         }
       });
@@ -391,7 +387,7 @@
       });
       metric.on("filter", function(dimension, filter) {
         var value = group.all();
-        if (isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
+        if (isArray(filter) && isDate(filter[0]) && isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
           variableRangeGroup.range(filter);
         }
       });
