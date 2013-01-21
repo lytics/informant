@@ -19,13 +19,17 @@
 
     .area {
       opacity: 0.3;
-      fill: @graph-stroke-color;
+      fill: @graph-fill-color;
     }
 
     .axis {
       font-size: 12px;
       opacity: 0.4;
       stroke: @graph-stroke-color;
+
+      text {
+        fill: @graph-fill-color;
+      }
     }
 
     .grid-line line {

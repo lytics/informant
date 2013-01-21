@@ -14,7 +14,7 @@
 
     .bar {
       fill-opacity: 0.3;
-      fill: @bar-stroke-color;
+      fill: @bar-fill-color;
       stroke-opacity: 0.5;
       stroke-width: 2px;
     }
@@ -23,6 +23,10 @@
       font-size: 12px;
       opacity: 0.4;
       stroke: @bar-stroke-color;
+
+      text {
+        fill: @graph-fill-color;
+      }
     }
 
     .grid-line line {
