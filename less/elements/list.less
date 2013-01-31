@@ -12,6 +12,10 @@
   ol, ul {
     text-align: left;
     margin-left: 40px;
+
+    &.filterable li {
+      cursor: pointer;
+    }
   }
 
   ul {
@@ -22,7 +26,6 @@
     font-size: @list-item-font-size;
     font-weight: @list-item-font-weight;
     margin-bottom: 5px;
-    cursor: pointer;
     // text-transform: uppercase;
     color: @list-list-item-color;
 

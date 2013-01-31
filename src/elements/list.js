@@ -8,6 +8,7 @@ informant.defineElement('list', function(element) {
 
   return function(selection) {
     var metric = element.metric(),
+      filterable = !!metric.dimension(),
       accessor = element.accessor(),
       list = selection.append(element.numbered() ? 'ol' : 'ul');
 
@@ -18,18 +19,22 @@ informant.defineElement('list', function(element) {
       items.enter()
         .append('li');
 
-      items
-        .text(accessor)
-        .classed('selected', function(d) {
-          return accessor(d) === metric.filter();
-        })
-        .on('click', function(d) {
-          metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
+      items.text(accessor)
 
-          if (dc) {
-            dc.redrawAll();
-          }
-        });
+      if (filterable) {
+        list.classed('filterable', true);
+        items
+          .classed('selected', function(d) {
+            return accessor(d) === metric.filter();
+          })
+          .on('click', function(d) {
+            metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
+
+            if (dc) {
+              dc.redrawAll();
+            }
+          });
+      }
 
       items.exit()
         .remove();
