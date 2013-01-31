@@ -33,6 +33,7 @@ informant.embed.js: \
 	src/end.js
 
 informant.elements.js: \
+	src/elements/html.js \
 	src/elements/number.js \
 	src/elements/list.js \
 	src/elements/filter.js \
@@ -47,6 +48,7 @@ informant.elements.js: \
 	less/reset.less \
 	less/mixins.less \
 	less/element.less \
+	less/elements/html.less \
 	less/elements/number.less \
 	less/elements/list.less \
 	less/elements/filter.less \
