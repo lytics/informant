@@ -1,6 +1,8 @@
 // Variables
-@number-background-color: @background-color;
-@number-value-color: @text-color;
+@number-background-color  : @element-background-color;
+@number-value-color       : @element-text-color;
+@number-value-font-size   : @element-prominent-font-size;
+@number-value-font-weight : @element-selected-font-weight;
 
 // Styles
 .element-number {
@@ -10,8 +12,8 @@
     margin-bottom: 20px;
     min-height: 92px;
     text-transform: uppercase;
-    font-size: 76px;
-    font-weight: 700;
+    font-size: @number-value-font-size;
+    font-weight: @number-value-font-weight;
     color: @number-value-color;
   }
 }

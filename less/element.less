@@ -1,19 +1,18 @@
-// .wrapper {
-//   padding: 10px 10px;
-// }
-
 .element {
-  // padding: 10px 10px;
   text-align: center;
   width: 100%;
   display: table-cell;
   vertical-align: middle;
-  color: @text-color;
+  color: @element-text-color;
 
   header {
     margin-bottom: 12px;
-    text-align: center;
-    font-size: 30px;
-    font-weight: 400;
+    color: @element-header-color;
+    font-size: @element-header-font-size;
+  }
+
+  footer {
+    color: @element-footer-color;
+    font-size: @element-footer-font-size;
   }
 }

@@ -1,7 +1,9 @@
 // Variables
-@pie-background-color: @background-color;
-@pie-stroke-color: black;
-@pie-fill-color: black;
+@pie-background-color : @element-background-color;
+@pie-text-color       : @element-text-color;
+@pie-stroke-color     : @element-stroke-color;
+@pie-text-opacity     : @element-text-opacity;
+@pie-slice-opacity    : @element-fill-opacity;
 
 // Styles
 .element-pie {
@@ -13,12 +15,13 @@
     fill: none;
 
     .pie-slice {
-      opacity: 0.5;
+      opacity: @pie-slice-opacity;
       stroke: none;
     }
 
     text.pie-slice {
-      fill: black;
+      opacity: @pie-text-opacity;
+      fill: @pie-text-color;
     }
   }
 }

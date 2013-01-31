@@ -1,6 +1,9 @@
 // Variables
-@list-background-color: @background-color;
-@list-value-color: @text-color;
+@list-background-color    : @element-background-color;
+@list-list-item-color     : @element-text-color;
+@list-item-font-size      : @element-list-item-font-size;
+@list-item-font-weight    : @element-list-item-font-weight;
+@list-selected-font-weight: @element-selected-font-weight;
 
 // Styles
 .element-list {
@@ -16,13 +19,15 @@
   }
 
   li {
+    font-size: @list-item-font-size;
+    font-weight: @list-item-font-weight;
     margin-bottom: 5px;
     cursor: pointer;
     // text-transform: uppercase;
-    color: @list-value-color;
+    color: @list-list-item-color;
 
     &.selected {
-      font-weight: 700;
+      font-weight: @list-selected-font-weight;
     }
   }
 }

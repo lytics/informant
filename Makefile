@@ -44,6 +44,7 @@ informant.elements.js: \
 .INTERMEDIATE informant.css: \
 	less/informant.less \
 	less/variables.less \
+	less/reset.less \
 	less/mixins.less \
 	less/element.less \
 	less/elements/number.less \

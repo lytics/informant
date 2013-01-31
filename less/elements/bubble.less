@@ -1,7 +1,11 @@
 // Variables
-@bubble-background-color: @background-color;
-@bubble-stroke-color: black;
-@bubble-fill-color: black;
+@bubble-background-color: @element-background-color;
+@bubble-stroke-color    : @element-stroke-color;
+@bubble-fill-color      : @element-fill-color;
+@bubble-text-opacity    : @element-text-opacity;
+@bubble-axis-opacity    : @element-axis-opacity;
+@bubble-grid-opacity    : @element-grid-opacity;
+@bubble-axis-font-size  : @element-axis-font-size;
 
 // Styles
 .element-bubble {
@@ -18,23 +22,23 @@
       }
 
       text {
-        opacity: 0.6;
+        opacity: @bubble-text-opacity;
         fill: @bubble-fill-color;
       }
     }
 
     .axis {
-      font-size: 12px;
-      opacity: 0.4;
+      font-size: @bubble-axis-font-size;
+      opacity: @bubble-axis-opacity;
       stroke: @bubble-stroke-color;
 
       text {
-        fill: @graph-fill-color;
+        fill: @bubble-fill-color;
       }
     }
 
     .grid-line line {
-      opacity: .1;
+      opacity: @bubble-grid-opacity;
       shape-rendering: crispEdges;
     }
   }

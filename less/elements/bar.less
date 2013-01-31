@@ -1,7 +1,13 @@
 // Variables
-@bar-background-color: @background-color;
-@bar-stroke-color: black;
-@bar-fill-color: black;
+@bar-background-color : @element-background-color;
+@bar-stroke-color     : @element-stroke-color;
+@bar-fill-color       : @element-fill-color;
+@bar-text-opacity     : @element-text-opacity;
+@bar-fill-opacity     : @element-fill-opacity;
+@bar-stroke-opacity   : @element-stroke-opacity;
+@bar-axis-opacity     : @element-axis-opacity;
+@bar-grid-opacity     : @element-grid-opacity;
+@bar-axis-font-size   : @element-axis-font-size;
 
 // Styles
 .element-bar {
@@ -13,24 +19,24 @@
     fill: none;
 
     .bar {
-      fill-opacity: 0.3;
+      fill-opacity: @bar-fill-opacity;
       fill: @bar-fill-color;
-      stroke-opacity: 0.5;
+      stroke-opacity: @bar-stroke-opacity;
       stroke-width: 2px;
     }
 
     .axis {
-      font-size: 12px;
-      opacity: 0.4;
+      font-size: @bar-axis-font-size;
+      opacity: @bar-axis-opacity;
       stroke: @bar-stroke-color;
 
       text {
-        fill: @graph-fill-color;
+        fill: @bar-fill-color;
       }
     }
 
     .grid-line line {
-      opacity: .1;
+      opacity: @bar-grid-opacity;
       shape-rendering: crispEdges;
     }
   }

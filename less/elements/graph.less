@@ -1,7 +1,13 @@
 // Variables
-@graph-background-color: @background-color;
-@graph-stroke-color: black;
-@graph-fill-color: black;
+@graph-background-color : @element-background-color;
+@graph-stroke-color     : @element-stroke-color;
+@graph-fill-color       : @element-fill-color;
+@graph-text-opacity     : @element-text-opacity;
+@graph-area-opacity     : @element-fill-opacity;
+@graph-line-opacity     : @element-stroke-opacity;
+@graph-axis-opacity     : @element-axis-opacity;
+@graph-grid-opacity     : @element-grid-opacity;
+@graph-axis-font-size   : @element-axis-font-size;
 
 // Styles
 .element-graph {
@@ -13,18 +19,18 @@
     fill: none;
 
     .line {
-      opacity: 0.5;
+      opacity: @graph-line-opacity;
       stroke-width: 2px;
     }
 
     .area {
-      opacity: 0.3;
+      opacity: @graph-area-opacity;
       fill: @graph-fill-color;
     }
 
     .axis {
-      font-size: 12px;
-      opacity: 0.4;
+      font-size: @graph-axis-font-size;
+      opacity: @graph-axis-opacity;
       stroke: @graph-stroke-color;
 
       text {
@@ -33,7 +39,7 @@
     }
 
     .grid-line line {
-      opacity: .1;
+      opacity: @graph-grid-opacity;
       shape-rendering: crispEdges;
     }
   }

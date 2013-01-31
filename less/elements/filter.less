@@ -1,7 +1,9 @@
 // Variables
-@filter-background-color: @background-color;
-@filter-value-color: @text-color;
-@filter-border-color: @border-color;
+@filter-background-color    : @element-background-color;
+@filter-list-item-color     : @element-text-color;
+@filter-item-font-size      : @element-list-item-font-size;
+@filter-item-font-weight    : @element-list-item-font-weight;
+@filter-selected-font-weight: @element-selected-font-weight;
 
 // Styles
 .element-filter {
@@ -12,8 +14,8 @@
     padding: 10px;
     margin: 0;
 
-    font-size: inherit;
-    font-weight: inherit;
+    font-size: @filter-item-font-size;
+    font-weight: @filter-item-font-size;
   }
 
   .content {
@@ -26,20 +28,14 @@
   }
 
   li {
-    display: inline-block;
-    min-width: 60px;
-    padding: 10px;
-    margin: 0 5px;
+    font-size: @filter-item-font-size;
+    font-weight: @filter-item-font-weight;
+    .button();
 
-    cursor: pointer;
-    color: @filter-value-color;
-
-    border: 2px solid @filter-border-color;
-    .border-radius();
+    color: @filter-list-item-color;
 
     &.selected {
-      border-width: 3px;
-      font-weight: 700;
+      font-weight: @filter-selected-font-weight;
     }
   }
 }
