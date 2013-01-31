@@ -8,14 +8,14 @@ var informant = {
 };
 
 // Global options hash, with default values
-var options = {
+var globalOptions = {
   baseWidth: 1,
   baseHeight: 1,
   margins: 0
 };
 
 // Create a mutator for every option
-addMutators(informant, options, keys(options));
+addMutators(informant, globalOptions, keys(globalOptions));
 
 // Shortcut mutator for setting base height/width at the same time
 addShortcutMutator(informant, 'baseSize', [ 'baseHeight', 'baseWidth' ]);
@@ -26,7 +26,7 @@ addElementCreator(informant);
 // Shortcut for setting options as a hash
 informant.config = function(opts) {
   if (!arguments.length) {
-    return extend({}, options);
+    return clone(globalOptions);
   }
 
   // Set config options through mutators
@@ -93,7 +93,9 @@ informant.defineElement = function(name, definition) {
 };
 
 informant.group = function() {
-  var group, instances = [];
+  var group,
+    options,
+    instances = [];
 
   group = function(target) {
     // Create an element that contains the whole group
@@ -142,8 +144,8 @@ informant.group = function() {
       // Shortcut mutator for setting both offsets at the same time
       addShortcutMutator(instance, 'position', [ 'top', 'left' ]);
 
-      // Add convenience function for easy chaining
-      instance.end = function() {
+      // Add convenience function for easy chaining (and an accessor for the element's group)
+      instance.end = instance.group = function() {
         return group;
       };
 
@@ -154,6 +156,15 @@ informant.group = function() {
       return isUndefined(opts) ? instance : group;
     };
   });
+
+  // Set attribute defaults to current global options
+  options = clone(globalOptions);
+
+  // Add mirror mutators for global options
+  addMutators(group, options, keys(globalOptions));
+
+  // Shortcut mutator for setting base height/width at the same time
+  addShortcutMutator(group, 'baseSize', [ 'baseHeight', 'baseWidth' ]);
 
   // Elements in the group can be created through an `element` function
   addElementCreator(group);

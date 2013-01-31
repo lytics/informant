@@ -59,6 +59,11 @@ function extend(target, obj) {
   return target;
 }
 
+// Shallow clone using extend
+function clone(obj) {
+  return extend({}, obj);
+}
+
 // Given a hash of options, invoke mutators with the given values
 function applyOptions(target, options) {
   if (isObject(options)) {
@@ -138,7 +143,7 @@ function createScale(metric, value) {
 
 // Helper for scaling size and offset
 function geometry(element) {
-  var size = informant.baseSize(),
+  var size = (element.group ? element.group() : informant).baseSize(),
     margin = informant.margins();
 
   return {
