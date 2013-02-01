@@ -59,10 +59,14 @@ informant.defineElement('filter', function(element) {
           .text(valueAt('name'))
           .on('click', function(d) {
             var filter = filterAccessor(d);
-            metric.filter(filter === metric.filter() ? null : filter);
 
-            if (dc) {
-              dc.redrawAll();
+            // Don't remove the filter if already applied like lists do
+            if (filter !== metric.filter()) {
+              metric.filter(filter);
+
+              if (dc) {
+                dc.redrawAll();
+              }
             }
           });
 
