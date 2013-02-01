@@ -3,6 +3,7 @@
 @list-list-item-color     : @element-text-color;
 @list-item-font-size      : @element-list-item-font-size;
 @list-item-font-weight    : @element-list-item-font-weight;
+@list-number-font-weight  : @element-unimportant-font-weight;
 @list-selected-font-weight: @element-selected-font-weight;
 
 // Styles
@@ -24,13 +25,21 @@
 
   li {
     font-size: @list-item-font-size;
-    font-weight: @list-item-font-weight;
+    font-weight: @list-number-font-weight;
     margin-bottom: 5px;
     // text-transform: uppercase;
     color: @list-list-item-color;
 
-    &.selected {
+    .key {
+      font-weight: @list-item-font-weight;
+    }
+
+    &.selected, .value {
       font-weight: @list-selected-font-weight;
+    }
+
+    .value {
+      float: right;
     }
   }
 }

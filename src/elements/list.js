@@ -1,15 +1,18 @@
 informant.defineElement('list', function(element) {
   var attributes = {
+    keyAccessor: valueAt('key'),
+    valueAccessor: valueAt('value'),
     numbered: false,
-    accessor: valueAt('key')
+    showValues: false
   };
 
-  addMutators(element, attributes, [ 'numbered', 'accessor' ]);
+  addMutators(element, attributes, [ 'keyAccessor', 'valueAccessor', 'numbered', 'showValues' ]);
 
   return function(selection) {
     var metric = element.metric(),
       filterable = !!metric.dimension(),
-      accessor = element.accessor(),
+      keyAccessor = element.keyAccessor(),
+      valueAccessor = element.valueAccessor(),
       list = selection.append(element.numbered() ? 'ol' : 'ul');
 
     metric.on('change', function update() {
@@ -17,9 +20,25 @@ informant.defineElement('list', function(element) {
         .data(metric.value());
 
       items.enter()
-        .append('li');
+        .append('li')
+          .call(function(s) {
+            s.append('span')
+              .attr('class', 'key');
+            if (element.showValues()) {
+              s.append('span')
+                .attr('class', 'value');
+            }
+          });
 
-      items.text(accessor)
+      items.call(function(s) {
+        s.select('span.key')
+          .text(keyAccessor);
+
+        if (element.showValues()) {
+          s.select('span.value')
+            .text(valueAccessor);
+        }
+      });
 
       if (filterable) {
         list.classed('filterable', true);
