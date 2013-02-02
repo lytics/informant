@@ -42,6 +42,9 @@
     });
     return target;
   }
+  function clone(obj) {
+    return extend({}, obj);
+  }
   function applyOptions(target, options) {
     if (isObject(options)) {
       keys(options).forEach(function(attr) {
@@ -85,8 +88,30 @@
       return d3.scale.linear().domain(d3.extent(domain));
     }
   }
+  function formatMonth(date) {
+    return d3.time.format("%b");
+  }
+  function formatDay(date) {
+    return date.getMonth() + 1 + "/" + date.getDate();
+  }
+  function formatHour(date) {
+    return d3.time.format("%I%p");
+  }
+  function addAxisTicks(axis, domain) {
+    var width = domain[1] - domain[0] || 0, extent = d3.extent(domain), day = 24 * 60 * 60 * 1e3;
+    if (domain[0] instanceof Date) {
+      if (width < day) {
+        axis.tickFormat(formatHour);
+      } else if (width < day * 90) {
+        axis.tickFormat(formatDay);
+      } else {
+        axis.tickFormat(formatMonth);
+      }
+      axis.ticks(8);
+    }
+  }
   function geometry(element) {
-    var size = informant.baseSize(), margin = informant.margins();
+    var size = (element.group ? element.group() : informant).baseSize(), margin = informant.margins();
     return {
       top: size[0] * (element.top ? +element.top() : 0) + margin,
       left: size[1] * (element.left ? +element.left() : 0) + margin,
@@ -124,19 +149,19 @@
   var isArray = Array.isArray;
   var root = this, d3 = root.d3;
   var informant = {
-    version: "0.1.0"
+    version: "0.1.1"
   };
-  var options = {
+  var globalOptions = {
     baseWidth: 1,
     baseHeight: 1,
     margins: 0
   };
-  addMutators(informant, options, keys(options));
+  addMutators(informant, globalOptions, keys(globalOptions));
   addShortcutMutator(informant, "baseSize", [ "baseHeight", "baseWidth" ]);
   addElementCreator(informant);
   informant.config = function(opts) {
     if (!arguments.length) {
-      return extend({}, options);
+      return clone(globalOptions);
     }
     return applyOptions(informant, opts);
   };
@@ -171,7 +196,7 @@
     };
   };
   informant.group = function() {
-    var group, instances = [];
+    var group, options, instances = [];
     group = function(target) {
       var group = select(target).append("div").classed("informant group", true).style("position", "relative");
       instances.forEach(function(instance) {
@@ -195,13 +220,16 @@
         instances.push(instance);
         addMutators(instance, attributes, [ "id", "classes", "top", "left" ]);
         addShortcutMutator(instance, "position", [ "top", "left" ]);
-        instance.end = function() {
+        instance.end = instance.group = function() {
           return group;
         };
         applyOptions(instance, opts);
         return isUndefined(opts) ? instance : group;
       };
     });
+    options = clone(globalOptions);
+    addMutators(group, options, keys(globalOptions));
+    addShortcutMutator(group, "baseSize", [ "baseHeight", "baseWidth" ]);
     addElementCreator(group);
     group.render = group;
     return group;
@@ -246,6 +274,16 @@
       };
     }
   });
+  informant.defineElement("html", function(element) {
+    var attributes = {
+      content: ""
+    };
+    addMutators(element, attributes, [ "content" ]);
+    delete element.metric;
+    return function(selection) {
+      selection.html(element.content());
+    };
+  });
   informant.defineElement("number", function(element) {
     return function(selection) {
       var metric = element.metric(), value = selection.append("div").classed("value", true);
@@ -256,23 +294,39 @@
   });
   informant.defineElement("list", function(element) {
     var attributes = {
+      keyAccessor: valueAt("key"),
+      valueAccessor: valueAt("value"),
       numbered: false,
-      accessor: valueAt("key")
+      showValues: false
     };
-    addMutators(element, attributes, [ "numbered", "accessor" ]);
+    addMutators(element, attributes, [ "keyAccessor", "valueAccessor", "numbered", "showValues" ]);
     return function(selection) {
-      var metric = element.metric(), accessor = element.accessor(), list = selection.append(element.numbered() ? "ol" : "ul");
+      var metric = element.metric(), filterable = !!metric.dimension(), keyAccessor = element.keyAccessor(), valueAccessor = element.valueAccessor(), list = selection.append(element.numbered() ? "ol" : "ul");
       metric.on("change", function update() {
         var items = list.selectAll("li").data(metric.value());
-        items.enter().append("li");
-        items.text(accessor).classed("selected", function(d) {
-          return accessor(d) === metric.filter();
-        }).on("click", function(d) {
-          metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
-          if (dc) {
-            dc.redrawAll();
+        items.enter().append("li").call(function(s) {
+          s.append("span").attr("class", "key");
+          if (element.showValues()) {
+            s.append("span").attr("class", "value");
           }
         });
+        items.call(function(s) {
+          s.select("span.key").text(keyAccessor);
+          if (element.showValues()) {
+            s.select("span.value").text(valueAccessor);
+          }
+        });
+        if (filterable) {
+          list.classed("filterable", true);
+          items.classed("selected", function(d) {
+            return accessor(d) === metric.filter();
+          }).on("click", function(d) {
+            metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
+            if (dc) {
+              dc.redrawAll();
+            }
+          });
+        }
         items.exit().remove();
       });
     };
@@ -328,9 +382,11 @@
         }
         list.selectAll("li").data(filters).enter().append("li").text(valueAt("name")).on("click", function(d) {
           var filter = filterAccessor(d);
-          metric.filter(filter === metric.filter() ? null : filter);
-          if (dc) {
-            dc.redrawAll();
+          if (filter !== metric.filter()) {
+            metric.filter(filter);
+            if (dc) {
+              dc.redrawAll();
+            }
           }
         });
         updateFilters();
@@ -354,9 +410,7 @@
           left: 50
         }).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric));
         chart.elasticY(true).elasticX(true).renderHorizontalGridLines(true).brushOn(false).renderArea(true);
-        chart.xAxis().ticks(d3.time.days).tickFormat(function(date) {
-          return date.getMonth() + 1 + "/" + date.getDate();
-        });
+        addAxisTicks(chart.xAxis(), metric.domain());
         chart.render();
       });
       metric.on("filter", function(dimension, filter) {

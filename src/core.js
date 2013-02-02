@@ -4,7 +4,7 @@ var root = this,
 
 // Namespace object;
 var informant = {
-  version: '0.1.0'
+  version: '0.1.1'
 };
 
 // Global options hash, with default values
