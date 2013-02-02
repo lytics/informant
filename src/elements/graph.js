@@ -33,12 +33,8 @@ informant.defineElement('graph', function(element) {
         .brushOn(false)
         .renderArea(true);
 
-      // Axes
-      chart.xAxis()
-        .ticks(d3.time.days)
-        .tickFormat(function(date) {
-          return (date.getMonth() + 1) + '/' + date.getDate();
-        });
+      // Intelligently assign axis ticks
+      addAxisTicks(chart.xAxis(), metric.domain());
 
       chart.render();
     });

@@ -141,6 +141,47 @@ function createScale(metric, value) {
   }
 }
 
+// Return a string that indicates the date object's month
+function formatMonth(date) {
+  return d3.time.format('%b');
+}
+
+// Return a string that indicates the date object's day
+function formatDay(date) {
+  return (date.getMonth() + 1) + '/' + date.getDate();
+}
+
+// Return a string that indicates the date object's hour
+function formatHour(date) {
+  return d3.time.format('%I%p');
+}
+
+// Intelligently add axis ticks/labels based on the domain
+function addAxisTicks(axis, domain) {
+  var width = domain[1] - domain[0] || 0,
+    extent = d3.extent(domain),
+    day = 24*60*60*1000;
+
+  if (domain[0] instanceof Date) {
+    if (width < day) {
+      // Show hours
+      axis.tickFormat(formatHour);
+    } else if (width < day*90) {
+      // Show days
+      axis.tickFormat(formatDay);
+    } else {
+      // Show months
+      axis.tickFormat(formatMonth);
+    }
+
+    // If the domain consists of dates, the underlying scale will be a d3.time.scale,
+    // which means you can specify the 'approximate' number of ticks -- in this case
+    // 9 tends to cram them together, overlapping labels
+    // TODO: this number should probably be proportional to the chart size and font
+    axis.ticks(8);
+  }
+}
+
 // Helper for scaling size and offset
 function geometry(element) {
   var size = (element.group ? element.group() : informant).baseSize(),
