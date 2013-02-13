@@ -44,10 +44,10 @@ informant.defineElement('list', function(element) {
         list.classed('filterable', true);
         items
           .classed('selected', function(d) {
-            return accessor(d) === metric.filter();
+            return keyAccessor(d) === metric.filter();
           })
           .on('click', function(d) {
-            metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
+            metric.filter(keyAccessor(d) === metric.filter() ? null : keyAccessor(d));
 
             if (dc) {
               dc.redrawAll();
