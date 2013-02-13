@@ -1,10 +1,12 @@
 informant.defineElement('graph', function(element) {
   var attributes = {
-    keyAccessor: valueAt('key'),
-    valueAccessor: valueAt('value')
+    keyAccessor   : valueAt('key'),
+    valueAccessor : valueAt('value'),
+    padding       : paddingObject(10, 30, 30, 50)
   };
 
   addMutators(element, attributes, [ 'keyAccessor', 'valueAccessor' ]);
+  addPaddingMutator(element, attributes);
 
   return function(selection) {
     var metric = element.metric(),
@@ -18,7 +20,7 @@ informant.defineElement('graph', function(element) {
       var chart = dc.lineChart(container.node())
         .width(size.width - 40)
         .height(size.height - 140)
-        .margins({top: 10, right: 10, bottom: 30, left: 50})
+        .margins(element.padding())
         .dimension(metric.dimension())
         .group(variableRangeGroup)
         .keyAccessor(attributes.keyAccessor)

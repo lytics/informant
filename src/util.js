@@ -182,6 +182,30 @@ function addAxisTicks(axis, domain) {
   }
 }
 
+// Helper function for quickly creating objects representing padding
+function paddingObject(t, r, b, l) {
+  return { top: t, right: r, bottom: b, left: l };
+}
+
+// Add a mutator for setting padding object w/ 'top', 'bottom', 'left', 'right' keys
+function addPaddingMutator(context, store) {
+  context.padding = function(padding) {
+    if (!arguments.length) {
+      return store.padding;
+    }
+
+    if (isObject(padding)) {
+      // if padding values are missing, fill in with defaults/existing values
+      extend(store.padding || paddingObject(0, 0, 0, 0), padding);
+    } else if (!isNaN(padding)) {
+      // also accept a single numeric value
+      store.padding = paddingObject(+padding, +padding, +padding, +padding);
+    }
+
+    return context;
+  };
+}
+
 // Helper for scaling size and offset
 function geometry(element) {
   var size = (element.group ? element.group() : informant).baseSize(),

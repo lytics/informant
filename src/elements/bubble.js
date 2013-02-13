@@ -1,12 +1,14 @@
 informant.defineElement('bubble', function(element) {
   var valueProp = valueAt('value'),
     attributes = {
-      keyAccessor: valueAt('key'),
-      valueAccessor: valueAt('value'),
-      radiusAccessor: valueAt('radius')
+      keyAccessor    : valueAt('key'),
+      valueAccessor  : valueAt('value'),
+      radiusAccessor : valueAt('radius'),
+      padding        : paddingObject(10, 30, 30, 50)
     };
 
   addMutators(element, attributes, [ 'keyAccessor', 'valueAccessor', 'radiusAccessor' ]);
+  addPaddingMutator(element, attributes);
 
   return function(selection) {
     var metric = element.metric(),
@@ -21,7 +23,7 @@ informant.defineElement('bubble', function(element) {
       var chart = dc.bubbleChart(container.node())
         .width(size.width - 40)
         .height(size.height - 140)
-        .margins({ top: 10, right: 50, bottom: 30, left: 50 })
+        .margins(element.padding())
         .dimension(metric.dimension())
         .group(metric.group())
         .x(createScale(metric, keyAccessor))
