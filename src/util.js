@@ -1,3 +1,5 @@
+/*jshint expr:true*/
+
 // Ensure that a target selector is a d3 selection
 function select(target) {
   return target instanceof d3.selection ? target : d3.select(target);
@@ -8,7 +10,7 @@ function addMutators(context, store, names) {
   names.forEach(function(name) {
     context[name] = function(value) {
       if (!arguments.length) {
-        return store[name];
+        return name in store ? store[name] : containerAttr(context, name);
       }
 
       store[name] = value;
@@ -49,6 +51,12 @@ function addElementCreator(context) {
 
     return context[name](opts);
   };
+}
+
+// Safely get a setting out of the element's container, defaulting to global scope
+function containerAttr(context, attr) {
+  var container = context.group ? context.group() : informant;
+  return isFunction(container[attr]) ? container[attr]() : null;
 }
 
 // Simple extend implementation
@@ -208,8 +216,8 @@ function addPaddingMutator(context, store) {
 
 // Helper for scaling size and offset
 function geometry(element) {
-  var size = (element.group ? element.group() : informant).baseSize(),
-    margin = informant.margins();
+  var size = containerAttr(element, 'baseSize'),
+    margin = containerAttr(element, 'margins');
 
   return {
     top   : size[0] * (element.top ? +element.top() : 0) + margin,
@@ -217,6 +225,17 @@ function geometry(element) {
     height: size[0] * +element.height() - margin * 2,
     width : size[1] * +element.width() - margin * 2
   };
+}
+
+// Helper for caluculating content div heaight accounting for header/footer padding
+function contentHeight(element, height) {
+  height = height || geomentry(element).height;
+
+  // account for header/footer size
+  element.header() && (height -= element.headerPadding());
+  element.footer() && (height -= element.footerPadding());
+
+  return height;
 }
 
 // A crossfilter group proxy object that alters the final output based on a

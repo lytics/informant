@@ -9,9 +9,11 @@ var informant = {
 
 // Global options hash, with default values
 var globalOptions = {
-  baseWidth: 1,
-  baseHeight: 1,
-  margins: 0
+  baseWidth     : 1,
+  baseHeight    : 1,
+  margins       : 0,
+  headerPadding : 50,
+  footerPadding : 50
 };
 
 // Create a mutator for every option
@@ -79,7 +81,7 @@ informant.defineElement = function(name, definition) {
     instance.render = instance;
 
     // Add basic mutator functions
-    addMutators(instance, attributes, [ 'metric', 'width', 'height', 'header', 'footer' ]);
+    addMutators(instance, attributes, [ 'metric', 'width', 'height', 'header', 'footer', 'headerPadding', 'footerPadding' ]);
 
     // Shortcut mutator for setting height/width at the same time
     addShortcutMutator(instance , 'size', [ 'height', 'width' ]);

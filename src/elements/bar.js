@@ -18,8 +18,8 @@ informant.defineElement('bar', function(element) {
 
     metric.on('ready', function init() {
       var chart = dc.barChart(container.node())
-        .width(size.width - 40)
-        .height(size.height - 140)
+        .width(size.width)
+        .height(contentHeight(element, size.height))
         .margins(element.padding())
         .dimension(metric.dimension())
         .group(variableRangeGroup)
