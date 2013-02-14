@@ -9,7 +9,8 @@ informant.defineElement('graph', function(element) {
   addPaddingMutator(element, attributes);
 
   return function(selection) {
-    var metric = element.metric(),
+    var chart,
+      metric = element.metric(),
       group = metric.group(),
       variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor),
       size = geometry(element),
@@ -17,7 +18,7 @@ informant.defineElement('graph', function(element) {
         .classed('chart line-chart', true);
 
     metric.on('ready', function init() {
-      var chart = dc.lineChart(container.node())
+      chart = dc.lineChart(container.node())
         .width(size.width)
         .height(contentHeight(element, size.height))
         .margins(element.padding())
@@ -36,7 +37,7 @@ informant.defineElement('graph', function(element) {
         .renderArea(true);
 
       // Intelligently assign axis ticks
-      addAxisTicks(chart.xAxis(), metric.domain());
+      formatXAxis(chart, variableRangeGroup);
 
       chart.render();
     });
@@ -48,6 +49,7 @@ informant.defineElement('graph', function(element) {
       if (isArray(filter) && isDate(filter[0]) &&
         isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
         variableRangeGroup.range(filter);
+        chart && formatXAxis(chart, variableRangeGroup);
       }
     });
   };

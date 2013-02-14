@@ -151,43 +151,60 @@ function createScale(metric, value) {
 }
 
 // Return a string that indicates the date object's month
-function formatMonth(date) {
-  return d3.time.format('%b');
-}
+var monthFormatter = d3.time.format('%b');
 
 // Return a string that indicates the date object's day
-function formatDay(date) {
+var dayFormatter = function(date) {
   return (date.getMonth() + 1) + '/' + date.getDate();
 }
 
 // Return a string that indicates the date object's hour
-function formatHour(date) {
-  return d3.time.format('%I%p');
-}
+var hourFormatter = d3.time.format('%I%p');
+
+// Helper variables for lengths of time in milliseconds
+var second = 1000;
+var minute = 60 * second;
+var hour = 60 * minute;
+var day = 24 * hour;
 
 // Intelligently add axis ticks/labels based on the domain
-function addAxisTicks(axis, domain) {
-  var width = domain[1] - domain[0] || 0,
-    extent = d3.extent(domain),
-    day = 24*60*60*1000;
+function formatXAxis(chart, group) {
+  var axis = chart.xAxis(),
+    extent = d3.extent(group.all(), valueAt('key')),
+    range = extent[1] - extent[0],
+    formatter,
+    step,
+    interval;
 
-  if (domain[0] instanceof Date) {
-    if (width < day) {
+  if (extent[0] instanceof Date) {
+    // Magically come up with the number of ticks to feed the d3.time.scale based
+    // on the width of the chart and a max pixel width so tick labels don't overlap
+    var maxTicks = chart.width() / 70;
+
+    if (range < day) {
       // Show hours
-      axis.tickFormat(formatHour);
-    } else if (width < day*90) {
+      formatter = hourFormatter;
+      step = d3.time.hours;
+      interval = range / hour;
+    } else if (range < day * 180) {
       // Show days
-      axis.tickFormat(formatDay);
+      formatter = dayFormatter;
+      step = d3.time.days;
+      interval = range / day;
     } else {
       // Show months
-      axis.tickFormat(formatMonth);
+      formatter = monthFormatter;
+      step = d3.time.months;
+      interval = range / day * 30;
     }
 
     // If the domain consists of dates, the underlying scale will be a d3.time.scale,
-    // which means you can specify the 'approximate' number of ticks -- in this case
-    // 9 tends to cram them together, overlapping labels
-    // TODO: this number should probably be proportional to the chart size and font
-    axis.ticks(8);
+    // which means you can specify the 'approximate' number of ticks.
+    axis.tickFormat(formatter);
+
+    // Use the d3.time.scale.ticks to specify a step, and given the data interval and
+    // max number of ticks, set the tick interval
+    axis.ticks(step, Math.floor(interval / maxTicks) + 1);
   }
 }
 
