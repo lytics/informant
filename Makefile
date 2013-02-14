@@ -11,7 +11,8 @@ all: \
 	informant.js \
 	informant.min.js \
 	informant.css \
-	informant.min.css
+	informant.min.css \
+	package.json
 
 full: \
 	informant.embed.js \
@@ -84,6 +85,11 @@ test: all
 
 %.less:
 	@cat /dev/null
+
+package.json: src/package.js src/core.js
+	@rm -f $@
+	node src/package.js > $@
+	@chmod a-w $@
 
 watch:
 	@echo "watching 'src' and 'less' directories..."
