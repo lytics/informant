@@ -6,7 +6,7 @@
     names.forEach(function(name) {
       context[name] = function(value) {
         if (!arguments.length) {
-          return store[name];
+          return name in store ? store[name] : containerAttr(context, name);
         }
         store[name] = value;
         return context;
@@ -35,6 +35,10 @@
       }
       return context[name](opts);
     };
+  }
+  function containerAttr(context, attr) {
+    var container = context.group ? context.group() : informant;
+    return isFunction(container[attr]) ? container[attr]() : null;
   }
   function extend(target, obj) {
     keys(obj).forEach(function(attr) {
@@ -88,36 +92,62 @@
       return d3.scale.linear().domain(d3.extent(domain));
     }
   }
-  function formatMonth(date) {
-    return d3.time.format("%b");
-  }
-  function formatDay(date) {
-    return date.getMonth() + 1 + "/" + date.getDate();
-  }
-  function formatHour(date) {
-    return d3.time.format("%I%p");
-  }
-  function addAxisTicks(axis, domain) {
-    var width = domain[1] - domain[0] || 0, extent = d3.extent(domain), day = 24 * 60 * 60 * 1e3;
-    if (domain[0] instanceof Date) {
-      if (width < day) {
-        axis.tickFormat(formatHour);
-      } else if (width < day * 90) {
-        axis.tickFormat(formatDay);
+  function formatXAxis(chart, group) {
+    var axis = chart.xAxis(), extent = d3.extent(group.all(), valueAt("key")), range = extent[1] - extent[0], formatter, step, interval;
+    if (extent[0] instanceof Date) {
+      var maxTicks = chart.width() / 70;
+      if (range < day) {
+        formatter = hourFormatter;
+        step = d3.time.hours;
+        interval = range / hour;
+      } else if (range < day * 180) {
+        formatter = dayFormatter;
+        step = d3.time.days;
+        interval = range / day;
       } else {
-        axis.tickFormat(formatMonth);
+        formatter = monthFormatter;
+        step = d3.time.months;
+        interval = range / day * 30;
       }
-      axis.ticks(8);
+      axis.tickFormat(formatter);
+      axis.ticks(step, Math.floor(interval / maxTicks) + 1);
     }
   }
+  function paddingObject(t, r, b, l) {
+    return {
+      top: t,
+      right: r,
+      bottom: b,
+      left: l
+    };
+  }
+  function addPaddingMutator(context, store) {
+    context.padding = function(padding) {
+      if (!arguments.length) {
+        return store.padding;
+      }
+      if (isObject(padding)) {
+        extend(store.padding || paddingObject(0, 0, 0, 0), padding);
+      } else if (!isNaN(padding)) {
+        store.padding = paddingObject(+padding, +padding, +padding, +padding);
+      }
+      return context;
+    };
+  }
   function geometry(element) {
-    var size = (element.group ? element.group() : informant).baseSize(), margin = informant.margins();
+    var size = containerAttr(element, "baseSize"), margin = containerAttr(element, "margins");
     return {
       top: size[0] * (element.top ? +element.top() : 0) + margin,
       left: size[1] * (element.left ? +element.left() : 0) + margin,
       height: size[0] * +element.height() - margin * 2,
       width: size[1] * +element.width() - margin * 2
     };
+  }
+  function contentHeight(element, height) {
+    height = height || geomentry(element).height;
+    element.header() && (height -= element.headerPadding());
+    element.footer() && (height -= element.footerPadding());
+    return height;
   }
   function VariableRangeGroup(group, accessor) {
     var attributes = {
@@ -141,30 +171,41 @@
     };
     addMutators(this, attributes, [ "range" ]);
   }
-  var slice = Function.prototype.call.bind(Array.prototype.slice);
-  var keys = Object.keys;
-  var isFunction = is("function");
-  var isObject = is("object");
-  var isDate = is("date");
-  var isArray = Array.isArray;
   var root = this, d3 = root.d3;
   var informant = {
-    version: "0.1.1"
+    version: "0.1.2"
   };
   var globalOptions = {
     baseWidth: 1,
     baseHeight: 1,
-    margins: 0
+    margins: 0,
+    headerPadding: 50,
+    footerPadding: 50
   };
-  addMutators(informant, globalOptions, keys(globalOptions));
+  addMutators(informant, globalOptions, Object.keys(globalOptions));
   addShortcutMutator(informant, "baseSize", [ "baseHeight", "baseWidth" ]);
-  addElementCreator(informant);
   informant.config = function(opts) {
     if (!arguments.length) {
       return clone(globalOptions);
     }
     return applyOptions(informant, opts);
   };
+  var slice = Function.prototype.call.bind(Array.prototype.slice);
+  var keys = Object.keys;
+  var isFunction = is("function");
+  var isObject = is("object");
+  var isDate = is("date");
+  var isArray = Array.isArray;
+  var monthFormatter = d3.time.format("%b");
+  var dayFormatter = function(date) {
+    return date.getMonth() + 1 + "/" + date.getDate();
+  };
+  var hourFormatter = d3.time.format("%I%p");
+  var second = 1e3;
+  var minute = 60 * second;
+  var hour = 60 * minute;
+  var day = 24 * hour;
+  addElementCreator(informant);
   var elementTypes = [];
   informant.defineElement = function(name, definition) {
     if (informant[name]) {
@@ -189,7 +230,7 @@
         return instance;
       };
       instance.render = instance;
-      addMutators(instance, attributes, [ "metric", "width", "height", "header", "footer" ]);
+      addMutators(instance, attributes, [ "metric", "width", "height", "header", "footer", "headerPadding", "footerPadding" ]);
       addShortcutMutator(instance, "size", [ "height", "width" ]);
       render = definition(instance);
       return applyOptions(instance, opts);
@@ -234,46 +275,6 @@
     group.render = group;
     return group;
   };
-  d3.interpolators.push(function(a, b) {
-    function fill(value, length) {
-      return d3.range(length).map(function() {
-        return value;
-      });
-    }
-    function extractCoordinates(path) {
-      return path.substr(1, path.length - (isArea ? 2 : 1)).split("L");
-    }
-    function makePath(coordinates) {
-      return "M" + coordinates.join("L") + (isArea ? "Z" : "");
-    }
-    function bufferPath(p1, p2) {
-      var d = p2.length - p1.length;
-      if (isArea) {
-        return fill(p1[0], d / 2).concat(p1, fill(p1[p1.length - 1], d / 2));
-      } else {
-        return fill(p1[0], d).concat(p1);
-      }
-    }
-    var isPath, isArea, interpolator, ac, bc, an, bn;
-    isPath = /M-?\d*\.?\d*,-?\d*\.?\d*(L-?\d*\.?\d*,-?\d*\.?\d*)*Z?/;
-    if (isPath.test(a) && isPath.test(b)) {
-      isArea = a[a.length - 1] === "Z";
-      ac = extractCoordinates(a);
-      bc = extractCoordinates(b);
-      an = ac.length;
-      bn = bc.length;
-      if (an > bn) {
-        bc = bufferPath(bc, ac);
-      }
-      if (bn > an) {
-        ac = bufferPath(ac, bc);
-      }
-      interpolator = d3.interpolateString(bn > an ? makePath(ac) : a, an > bn ? makePath(bc) : b);
-      return bn > an ? interpolator : function(t) {
-        return t === 1 ? b : interpolator(t);
-      };
-    }
-  });
   informant.defineElement("html", function(element) {
     var attributes = {
       content: ""
@@ -319,9 +320,9 @@
         if (filterable) {
           list.classed("filterable", true);
           items.classed("selected", function(d) {
-            return accessor(d) === metric.filter();
+            return keyAccessor(d) === metric.filter();
           }).on("click", function(d) {
-            metric.filter(accessor(d) === metric.filter() ? null : accessor(d));
+            metric.filter(keyAccessor(d) === metric.filter() ? null : keyAccessor(d));
             if (dc) {
               dc.redrawAll();
             }
@@ -397,26 +398,24 @@
   informant.defineElement("graph", function(element) {
     var attributes = {
       keyAccessor: valueAt("key"),
-      valueAccessor: valueAt("value")
+      valueAccessor: valueAt("value"),
+      padding: paddingObject(10, 30, 30, 50)
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor" ]);
+    addPaddingMutator(element, attributes);
     return function(selection) {
-      var metric = element.metric(), group = metric.group(), variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor), size = geometry(element), container = selection.append("div").classed("chart line-chart", true);
+      var chart, metric = element.metric(), group = metric.group(), variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor), size = geometry(element), container = selection.append("div").classed("chart line-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.lineChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
-          top: 10,
-          right: 10,
-          bottom: 30,
-          left: 50
-        }).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric));
+        chart = dc.lineChart(container.node()).width(size.width).height(contentHeight(element, size.height)).margins(element.padding()).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric));
         chart.elasticY(true).elasticX(true).renderHorizontalGridLines(true).brushOn(false).renderArea(true);
-        addAxisTicks(chart.xAxis(), metric.domain());
+        formatXAxis(chart, variableRangeGroup);
         chart.render();
       });
       metric.on("filter", function(dimension, filter) {
         var value = group.all();
         if (isArray(filter) && isDate(filter[0]) && isArray(value) && isDate(attributes.keyAccessor(value[0]))) {
           variableRangeGroup.range(filter);
+          chart && formatXAxis(chart, variableRangeGroup);
         }
       });
     };
@@ -424,18 +423,15 @@
   informant.defineElement("bar", function(element) {
     var attributes = {
       keyAccessor: valueAt("key"),
-      valueAccessor: valueAt("value")
+      valueAccessor: valueAt("value"),
+      padding: paddingObject(10, 30, 30, 50)
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor" ]);
+    addPaddingMutator(element, attributes);
     return function(selection) {
       var metric = element.metric(), group = metric.group(), variableRangeGroup = new VariableRangeGroup(group, attributes.keyAccessor), size = geometry(element), container = selection.append("div").classed("chart bar-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.barChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
-          top: 10,
-          right: 10,
-          bottom: 30,
-          left: 60
-        }).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric)).xUnits(dc.units.ordinal);
+        var chart = dc.barChart(container.node()).width(size.width).height(contentHeight(element, size.height)).margins(element.padding()).dimension(metric.dimension()).group(variableRangeGroup).keyAccessor(attributes.keyAccessor).valueAccessor(attributes.valueAccessor).x(createScale(metric)).xUnits(dc.units.ordinal);
         chart.elasticY(true).elasticX(true).centerBar(true).renderHorizontalGridLines(true).brushOn(false);
         chart.render();
       });
@@ -449,14 +445,15 @@
   });
   informant.defineElement("pie", function(element) {
     var attributes = {
-      donut: false
+      donut: false,
+      padding: 10
     };
-    addMutators(element, attributes, [ "donut" ]);
+    addMutators(element, attributes, [ "donut", "padding" ]);
     return function(selection) {
       var metric = element.metric(), size = geometry(element), container = selection.append("div").classed("chart pie-chart", true);
       metric.on("ready", function init() {
-        var radius = size.width / 2 - 60, width = radius * 2 + 6, opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
-        var chart = dc.pieChart(container.node()).width(width).height(width).radius(radius).dimension(metric.dimension()).group(metric.group());
+        var radius = Math.min(size.width, contentHeight(element, size.height)) / 2 - element.padding(), opacityScale = d3.scale.linear().domain([ 0, metric.group().size() - 1 ]).range([ "rgba(0,0,0,0.2)", "rgba(0,0,0,0.7)" ]);
+        var chart = dc.pieChart(container.node()).width(size.width).height(contentHeight(element, size.height)).radius(radius).dimension(metric.dimension()).group(metric.group());
         if (element.donut()) {
           chart.innerRadius(radius / 3);
         }
@@ -474,22 +471,67 @@
     var valueProp = valueAt("value"), attributes = {
       keyAccessor: valueAt("key"),
       valueAccessor: valueAt("value"),
-      radiusAccessor: valueAt("radius")
+      radiusAccessor: valueAt("radius"),
+      padding: paddingObject(10, 30, 30, 50)
     };
     addMutators(element, attributes, [ "keyAccessor", "valueAccessor", "radiusAccessor" ]);
+    addPaddingMutator(element, attributes);
     return function(selection) {
       var metric = element.metric(), size = geometry(element), keyAccessor = pipe(element.keyAccessor(), valueProp), valueAccessor = pipe(element.valueAccessor(), valueProp), radiusAccessor = pipe(element.radiusAccessor(), valueProp), container = selection.append("div").classed("chart bubble-chart", true);
       metric.on("ready", function init() {
-        var chart = dc.bubbleChart(container.node()).width(size.width - 40).height(size.height - 140).margins({
-          top: 10,
-          right: 50,
-          bottom: 30,
-          left: 50
-        }).dimension(metric.dimension()).group(metric.group()).x(createScale(metric, keyAccessor)).y(createScale(metric, valueAccessor)).r(createScale(metric, radiusAccessor)).keyAccessor(keyAccessor).valueAccessor(valueAccessor).radiusValueAccessor(radiusAccessor);
+        var chart = dc.bubbleChart(container.node()).width(size.width).height(contentHeight(element, size.height)).margins(element.padding()).dimension(metric.dimension()).group(metric.group()).x(createScale(metric, keyAccessor)).y(createScale(metric, valueAccessor)).r(createScale(metric, radiusAccessor)).keyAccessor(keyAccessor).valueAccessor(valueAccessor).radiusValueAccessor(radiusAccessor);
         chart.colors(d3.scale.category20c()).maxBubbleRelativeSize(.09).renderLabel(true).elasticX(true).elasticY(true).renderHorizontalGridLines(true).renderVerticalGridLines(true).brushOn(false);
         chart.render();
       });
     };
   });
-  root["informant"] = informant;
+  d3.interpolators.push(function(a, b) {
+    function fill(value, length) {
+      return d3.range(length).map(function() {
+        return value;
+      });
+    }
+    function extractCoordinates(path) {
+      return path.substr(1, path.length - (isArea ? 2 : 1)).split("L");
+    }
+    function makePath(coordinates) {
+      return "M" + coordinates.join("L") + (isArea ? "Z" : "");
+    }
+    function bufferPath(p1, p2) {
+      var d = p2.length - p1.length;
+      if (isArea) {
+        return fill(p1[0], d / 2).concat(p1, fill(p1[p1.length - 1], d / 2));
+      } else {
+        return fill(p1[0], d).concat(p1);
+      }
+    }
+    var isPath, isArea, interpolator, ac, bc, an, bn;
+    isPath = /M-?\d*\.?\d*,-?\d*\.?\d*(L-?\d*\.?\d*,-?\d*\.?\d*)*Z?/;
+    if (isPath.test(a) && isPath.test(b)) {
+      isArea = a[a.length - 1] === "Z";
+      ac = extractCoordinates(a);
+      bc = extractCoordinates(b);
+      an = ac.length;
+      bn = bc.length;
+      if (an > bn) {
+        bc = bufferPath(bc, ac);
+      }
+      if (bn > an) {
+        ac = bufferPath(ac, bc);
+      }
+      interpolator = d3.interpolateString(bn > an ? makePath(ac) : a, an > bn ? makePath(bc) : b);
+      return bn > an ? interpolator : function(t) {
+        return t === 1 ? b : interpolator(t);
+      };
+    }
+  });
+  if (typeof module !== "undefined") {
+    module.exports = informant;
+  } else if (typeof define === "function" && define.amd) {
+    define("informant", function() {
+      return informant;
+    });
+  } else {
+    root["informant"] = informant;
+  }
 })();
