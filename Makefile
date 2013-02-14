@@ -18,17 +18,20 @@ full: \
 	informant.embed.min.js
 
 informant.embed.js: \
-  lib/d3/d3.v2.js \
-  lib/crossfilter/crossfilter.js \
-  lib/analyst/analyst.js \
-  lib/dc/dc.js \
-  informant.js
+	lib/d3/d3.v2.js \
+	lib/crossfilter/crossfilter.js \
+	lib/analyst/analyst.js \
+	lib/dc/dc.js \
+	informant.js
 
 .INTERMEDIATE informant.js: \
 	src/start.js \
-	src/util.js \
 	src/core.js \
+	src/util.js \
+	src/element.js \
+	src/group.js \
 	informant.elements.js \
+	src/d3.js \
 	src/export.js \
 	src/end.js
 
