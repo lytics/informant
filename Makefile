@@ -33,7 +33,6 @@ informant.embed.js: \
 	src/group.js \
 	informant.elements.js \
 	src/d3.js \
-	src/export.js \
 	src/end.js
 
 informant.elements.js: \

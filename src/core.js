@@ -1,6 +1,3 @@
-var root = this,
-  d3 = root.d3;
-
 // Namespace object;
 var informant = {
   version: '0.1.2'
